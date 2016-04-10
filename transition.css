@@ -12,15 +12,13 @@
     list-style: none;
     position: relative;
     /*left: -400px;*/
-    transform:translateX(-400px);
-    -webkit-transform:translateX(-400px);
+    transform:translateX(0px);
 }
 
 .transitionobj li {
     width: 400px;
     height: inherit;
-    float: left;
-    vertical-align: top;
+    position:absolute;
 }
 
 .transitionClass {
@@ -28,6 +26,6 @@
     transition-duration: .7s;
     transition-timing-function: cubic-bezier(1,0,0,1);
     -webkit-transition-property: transform;
-    -webkit-transition-duration: 0s;
-    -webkit-transition-timing-function: cubic-bezier(1,0,0,1);
+    -webkit-transition-duration: 1s;
+    -webkit-transition-timing-function: cubic-bezier(1,0,1,0);
 }
