@@ -1,31 +1,90 @@
 .container {
     display: block;
-    width: 400px;
-    height: 200px;
+    width: 700px;
+    height: 300px;
     margin: 10px auto;
     border: 1px solid black;
     overflow: hidden;
 }
 .transitionobj {
-    width: 1600px;
-    height: inherit;
     list-style: none;
     position: relative;
-    /*left: -400px;*/
     transform:translateX(0px);
 }
 
 .transitionobj li {
-    width: 400px;
-    height: inherit;
+    width: 700px;
+    height: 300px;
     position:absolute;
 }
 
-.transitionClass {
-    transition-property: transform;
-    transition-duration: .7s;
-    transition-timing-function: cubic-bezier(1,0,0,1);
+.content1 {
+    width: 150px;
+    height: 50px;
+    background-color: blue;
+    position: absolute;
+    top: 5px;
+    left: 40px;
+    /*border-radius: 25px;*/
+    opacity: 0;
+}
+
+.content2 {
+    width: 250px;
+    height: 50px;
+    background-color: blue;
+    position: absolute;
+    top: 200px;
+    left: 0px;
+    /*border-radius: 25px;*/
+    opacity: 0;
+}
+
+
+.transitionClass2 {
     -webkit-transition-property: transform;
-    -webkit-transition-duration: 1s;
-    -webkit-transition-timing-function: cubic-bezier(1,0,1,0);
+    -webkit-transition-duration: 3s;
+    -webkit-transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.transitionClass {
+    -webkit-transition-property: transform;
+    -webkit-transition-duration: .1s;
+    -webkit-transition-timing-function: linear;
+}
+
+.contentTransition {
+    -webkit-transition-property: all;
+    -webkit-transition-duration: 2s;
+    -webkit-transition-delay: 1s;
+    -webkit-transition-timing-function: ease-in;
+}
+
+@keyframe 'anim' {
+    0% {
+        -webkit-transition-timing-function: cubic-bezier(0,1,0,1);
+    }
+    60% {
+        -webkit-transition-timing-function: cubic-bezier(0,1,1,0);
+    }
+    100% {
+        -webkit-transition-timing-function: cubic-bezier(1,0,0,1);
+    }
+}
+.contentAnimation {
+    -webkit-transition-property: all;
+    -webkit-transition-duration: 2s;
+    -webkit-transition-delay: .1s;
+    -webkit-transition-timing-function: linear;
+}
+
+.changeContent {
+    top: 50px;
+    /*border-radius: 0px;*/
+    opacity: 1;
+}
+
+.changeContent2 {
+    left: 40px;
+    opacity: 1;
 }
