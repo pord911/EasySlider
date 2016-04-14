@@ -60,17 +60,6 @@
     -webkit-transition-timing-function: ease-in;
 }
 
-@keyframe 'anim' {
-    0% {
-        -webkit-transition-timing-function: cubic-bezier(0,1,0,1);
-    }
-    60% {
-        -webkit-transition-timing-function: cubic-bezier(0,1,1,0);
-    }
-    100% {
-        -webkit-transition-timing-function: cubic-bezier(1,0,0,1);
-    }
-}
 .contentAnimation {
     -webkit-transition-property: all;
     -webkit-transition-duration: 2s;

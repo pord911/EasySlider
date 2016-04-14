@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    var width = 700;
+    var height = 300;
     var array;
     var index = 1;
 
@@ -36,10 +36,10 @@ $(document).ready(function() {
     }
     createMatrix();
     $('.transitionobj').children().each(function(index) {
-      var value = index * width;
-      $(this).css({left:value + 'px'});
+      var value = array[0][index] * height;
+      $(this).css({top:value + 'px'});
     });
-    $('.transitionobj li:last').css({left: '-' + width + 'px'});
+   
 
     $('.mybutton').on("click", function() {
       moveChange(1);
@@ -56,23 +56,23 @@ $(document).ready(function() {
      for (var i = 0; i < offset; i++) {
         transition = (i < offset - 1) ? skipSlide() : transitionActual;
         if (transition === transitionActual)
-          executeSlideTransition(transition);      }
+          executeSlideTransition(transition);      
     }
   }
   function executeSlideTransition(transition) {
        var def;
        var prop;
-       
+
         $('.transitionobj').bind("transitionend", function() {
           var el = $(this)[0];
           var array = getArray(getIndex());
           $('.transitionobj').removeClass(transition);
           console.log("callback: Changed list");
-          def = "translateX(0px)";
+          def = "translateY(0px)";
           el.style.transform = def;
           $(this).children().each(function(index) {
-            var value = array[index] * width;
-            $(this).css({left: value + 'px'});
+            var value = array[index] * height;
+            $(this).css({top: value + 'px'});
           });
           updateIndex();
           $('.content1').addClass('changeContent');
@@ -82,14 +82,14 @@ $(document).ready(function() {
         });
 
         $('.transitionobj').addClass(transition);
-        prop = "translateX(-"+ width +"px)";
+        prop = "translateY(-"+ height +"px)";
         $('.transitionobj').css({'transform': prop});
   }
   function skipSlide() {
     var array = getArray(getIndex());
     $('.transitionobj').children().each(function(index) {
-       var value = array[index] * width;
-       $(this).css({left: value + 'px'});
+       var value = array[index] * height;
+       $(this).css({top: value + 'px'});
     });
     updateIndex();
   }
