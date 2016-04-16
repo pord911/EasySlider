@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    var height = 300;
+    var width = 700;
     var array;
     var index = 1;
 
@@ -36,8 +36,8 @@ $(document).ready(function() {
     }
     createMatrix();
     $('.transitionobj').children().each(function(index) {
-      var value = array[0][index] * height;
-      $(this).css({top:value + 'px'});
+      var value = array[0][index] * width;
+      $(this).css({left:value + 'px'});
     });
    
 
@@ -68,11 +68,11 @@ $(document).ready(function() {
           var array = getArray(getIndex());
           $('.transitionobj').removeClass(transition);
           console.log("callback: Changed list");
-          def = "translateY(0px)";
+          def = "translateX(0px)";
           el.style.transform = def;
           $(this).children().each(function(index) {
-            var value = array[index] * height;
-            $(this).css({top: value + 'px'});
+            var value = array[index] * width;
+            $(this).css({left: value + 'px'});
           });
           updateIndex();
           $('.content1').addClass('changeContent');
@@ -82,14 +82,14 @@ $(document).ready(function() {
         });
 
         $('.transitionobj').addClass(transition);
-        prop = "translateY(-"+ height +"px)";
+        prop = "translateX(-"+ width +"px)";
         $('.transitionobj').css({'transform': prop});
   }
   function skipSlide() {
     var array = getArray(getIndex());
     $('.transitionobj').children().each(function(index) {
-       var value = array[index] * height;
-       $(this).css({top: value + 'px'});
+       var value = array[index] * width;
+       $(this).css({left: value + 'px'});
     });
     updateIndex();
   }
