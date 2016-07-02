@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <script src="jquery.js"></script>
-    <script src="transition.js"></script>
+    <script src="flexible.js"></script>
     <link href="transition.css" rel="stylesheet" />
     <style>
         html, body, div, span, applet, object, iframe,
@@ -36,22 +36,17 @@
 <div class="container"> 
  <ul class="transitionobj">
      <li>
-         <div style="width:100%; height:100%; background-color:blue">
+         <div style="background-color:blue;width:100%; height:100%">
          </div>
      </li>
      <li>
-         <div style="width:100%; height:100%; background-color:red">
-            <div class="contentTransition content1">
-            </div>
-            <div class="contentTransition content2">
-            </div>
-
+         <div style="background-color:red;width:100%; height:100%">
          </div>
      </li>
      <li>
          <div style="width:100%; height:100%; background-color:green"></div>
      </li>
-     <li class="track">
+     <li>
          <div style="width:100%; height:100%; background-color:yellow"></div>
      </li>
  </ul>

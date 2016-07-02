@@ -1,12 +1,12 @@
 .container {
     display: block;
-    width: 700px;
-    height: 300px;
+    width: 400px;
+    height: 200px;
     margin: 10px auto;
     border: 1px solid black;
     overflow: hidden;
 }
-.transitionobj {
+/*.transitionobj {
     list-style: none;
     position: relative;
     transform:translateX(0px);
@@ -16,7 +16,7 @@
     width: 700px;
     height: 300px;
     position:absolute;
-}
+}*/
 
 .content1 {
     width: 150px;
