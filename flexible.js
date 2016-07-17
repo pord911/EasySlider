@@ -2,121 +2,7 @@
 * Za napraviti:
 * auto slide, bind funkcija za executeSlide, isprobavanje drugačije implementacije execute, callback ... funkcija ali sa istim pozivima
 */
-function initSlideProcedure(slider)
-{
-    var sliderObject = slider.sliderObject;
-    var cssThreeSlideProc = function(slideParams) {
-        sliderObject.unbind(this.transitionEvent);
-        sliderObject.bind(this.transitionEvent, {index: slideParams.index}, this.sliderCallback);
-        this.moveSlide.call(sliderObject, slideParams.next);
-    }
-
-    var animateSlideProc = function(slideParams) {
-
-    }
-
-    return function(slideParams) {
-                console.log(slideParams.index);
-                var i;
-                /* TODO: check for css3 support */
-                for (i = 0; i < slideParams.offset; i++)
-                cssThreeSlideProc.call(this, slideParams);
-    };
-}
-
-function createIndexObject(length) 
-{
-    var offset = 0, 
-        index = 0, 
-        indexLength = length - 1,
-        indexStart = 0;
-
-    var incrementIndex = function() {
-        index++;
-        console.log("Increment:" + index);
-        if (index > indexLength)
-            index = 0;
-        offset = 1;
-    }
-
-    var decrementIndex = function() {
-        index--;
-        console.log("decrementIndex:" + index);
-        if (index < 0)
-            index = indexLength;
-        offset = 1;
-    }
-
-    var setIndex = function(value) {
-        if (value < indexLength) {
-            offset = Math.abs(index - value);
-            indexStart = index;
-            index = value;
-        } else
-            return -1;
-        return 0;
-    }
-
-    var getIndex = function() {
-        return index;
-    }
-
-    var getOffset = function() {
-        return offset;
-    }
-
-    var getIndexStart = function() {
-        return indexStart;
-    }
-
-    return {
-        incrementIndex: incrementIndex,
-        decrementIndex: decrementIndex,
-        setIndex: setIndex,
-        getIndex: getIndex,
-        getOffset: getOffset,
-        getIndexStart: getIndexStart
-    }
-}
-
-function createMoveObject(slider, callbacks)
-{
-    var sliderCallback = function(event) {
-        var array = slider.matrix[event.data.index],
-            sliderObject = $(this), value, listElement;
-        console.log(array);
-        console.log("Index in callback:" + event.data.index);
-        sliderObject.removeClass(slider.cssClass);
-        slider.moveObject[slider.moveProperty] = slider.defaultValue;
-        sliderObject.css(slider.moveObject);
-        sliderObject.children().each(function(index) {
-            listElement = $(this);
-            value = array[index] * slider.permuteValue;
-            slider.property[slider.permuteProperty] = value + 'px';
-            listElement.css(slider.property);
-        });
-        callbacks.forEach(function() {
-            console.log("Calling callbacks!");
-        });
-    }
-
-    var moveSlide = function(next) {
-        var moveValue = next == "next" ? slider.moveNext : slider.movePrev,
-            sliderObject = $(this);
-        sliderObject.addClass(slider.cssClass);
-        slider.moveObject[slider.moveProperty] = moveValue;
-        sliderObject.css(slider.moveObject);
-    }
-    var transitionEvent = slider.transEvent;
-
-    return {
-        sliderCallback: sliderCallback,
-        transitionEvent: transitionEvent,
-        moveSlide: moveSlide
-    };   
-}
-
-function createMatrix(length) 
+function createMatrix(length)
 {
     var array = new Array(length);
     var i;
@@ -134,6 +20,164 @@ function createMatrix(length)
     }
 
     return array;
+}
+
+function createIndexObject(length) 
+{
+    var offset = 0, 
+        index = 0, 
+        indexLength = length - 1;
+
+    var incrementIndex = function() {
+        index++;
+        console.log("incrementIndex: Increment:" + index);
+        if (index > indexLength)
+            index = 0;
+    }
+
+    var decrementIndex = function() {
+        index--;
+        console.log("decrementIndex:" + index);
+        if (index < 0)
+            index = indexLength;
+    }
+
+    var updateIndex = function(next) {
+        if (next == "next")
+            incrementIndex();
+        else
+            decrementIndex();
+    }
+
+    var setIndex = function(value) {
+        index = value;
+    }
+
+    var getIndex = function() {
+        return index;
+    }
+
+    var getOffset = function(value) {
+        console.log("getOffset: index:" + index + " value:" + value);
+        offset = Math.abs(index - value);
+        return offset;
+    }
+
+    var getIndexStart = function() {
+        return indexStart;
+    }
+
+    return {
+        updateIndex: updateIndex,
+        setIndex: setIndex,
+        getIndex: getIndex,
+        getOffset: getOffset,
+        getIndexStart: getIndexStart
+    }
+}
+
+function initSlideProcedure(slider)
+{
+    var sliderObject = slider.sliderObject;
+    var cssThreeSlideProc = function(slideParams) {
+
+        console.log("cssThreeSlideProc: offset:" + slideParams.offset);
+        if (slideParams.offset > 1)
+            slideParams.skip = "SKIP";
+        else
+            slideParams.skip = "NONE";
+
+        sliderObject.unbind(this.transitionEvent);
+        sliderObject.bind(this.transitionEvent, {params: slideParams,
+                                                 skip: slideParams.skip,
+                                                 skipFunction: "slideProcedure",
+                                                 context: this}, this.sliderCallback);
+        this.moveSlide.call(sliderObject, slideParams);
+    }
+
+    var animateSlideProc = function(slideParams) {
+
+    }
+
+    var slideProcedure = function(slideParams) {
+        /* TODO: check for css3 support */
+        cssThreeSlideProc.call(this, slideParams);
+    }
+
+    return {
+        slideProcedure: slideProcedure
+    };
+}
+
+function createMoveObject(slider, callbacks)
+{
+    var sliderObject = slider.sliderObject;
+
+    var moveSlide = function(params) {
+        var moveValue = params.next == "next" ? slider.moveNext : slider.movePrev,
+            moveClass;
+
+        moveClass = params.skip == "SKIP" ? slider.skipClass : slider.cssClass;
+        console.log("moveSlide: moveClass=" + moveClass);
+        setTimeout(function() {
+            sliderObject.addClass(moveClass);
+            setTimeout(function() {
+                slider.moveObject[slider.moveProperty] = moveValue;
+                sliderObject.css(slider.moveObject);
+            }, 10);
+        }, 10);
+    }
+
+    var sliderCallback = function(event) {
+        var array, value, listElement,
+            fn = slider.sliderFunction[event.data.skipFunction], moveClass;
+
+        console.log("sliderCallback: Calling callback");
+        event.data.params.offset--;
+        slider.indexObject.updateIndex(event.data.params.next);
+        array = slider.matrix[slider.indexObject.getIndex()];
+
+        console.log("sliderCallback: array=" + array);
+        console.log("sliderCallback: Index in callback=" + slider.indexObject.getIndex());
+        console.log("sliderCallback: skip=" + event.data.skip);
+
+        moveClass = event.data.skip == "SKIP" ? slider.skipClass:slider.cssClass;
+        sliderObject.removeClass(moveClass);
+        slider.moveObject[slider.moveProperty] = slider.defaultValue;
+        sliderObject.css(slider.moveObject);
+
+        sliderObject.children().each(function(index) {
+            listElement = $(this);
+            value = array[index] * slider.permuteValue;
+            slider.property[slider.permuteProperty] = value + 'px';
+            listElement.css(slider.property);
+        });
+
+        if (event.data.skip == "SKIP")
+            fn.call(event.data.context, event.data.params);
+        else {
+            callbacks.forEach(function(element, index) {
+                slider.sliderBusy.setSliderBusy("SLIDER_FREE");
+                /* TODO: popraviti da prepoznaje od kud dolazi callback, da li slider ili freelance */
+                if (element == "autoSlider" && !slider.interval) {
+                    console.log("sliderCallback: Calling autocallback");
+                    var auto = slider[element];
+                    auto();
+                } else {
+                    /* TODO: staviti druge callback-ove */
+                    console.log("sliderCallback: Calling callbacks!");
+                }
+            });
+        }
+    }
+
+    var transitionEvent = slider.transEvent;
+
+    return {
+        sliderCallback: sliderCallback,
+        transitionEvent: transitionEvent,
+        moveSlide: moveSlide
+    };   
 }
 
 function createSliderElement(slider)
@@ -158,6 +202,7 @@ function createSliderCss(width, height)
         height: height + 'px',
         "list-style": 'none'
     },
+
     listElementCss = {
         width: width + 'px',
         height: height + 'px',
@@ -169,40 +214,83 @@ function createSliderCss(width, height)
     }
 }
 
+function sliderBusy()
+{
+    var busy = "SLIDER_FREE";
+    var setSliderBusy = function(param) {
+        busy = param;
+    }
+    var getSliderBusy = function() {
+        return busy;
+    }
+
+    return {
+        setSliderBusy: setSliderBusy,
+        getSliderBusy: getSliderBusy
+    }
+}
+
+/* TODO: malo skratiti ready() funkciju */
 $(document).ready(function() {
     var slider ={};
-    slider.cssConfig = createSliderCss(400, 200);
     slider.sliderObject = $('.transitionobj');
     slider.cssClass = 'transitionClass2';
-    var sliderFunction = initSlideProcedure(slider);
+    slider.skipClass = 'transitionClass';
     slider.property = {};
-    slider.permuteValue = 400;
-    slider.permuteProperty = 'left';
-    slider.matrix = createMatrix(slider.sliderObject.children().length);
-    slider.defaultValue = "translateX(0px)";
+    slider.permuteValue = 200;
+    slider.permuteProperty = 'top';
+    slider.defaultValue = "translateY(0px)";
     slider.transEvent = 'transitionend';
-    slider.moveNext = "translateX(-400px)";
-    slider.movePrev = "translateX(400px)";
+    slider.moveNext = "translateY(-200px)";
+    slider.movePrev = "translateY(200px)";
     slider.moveObject = {};
     slider.moveProperty = "transform";
-    createSliderElement(slider);
-    var moveFunctionConfig = createMoveObject(slider, [1,2]);
-    var indexObject = createIndexObject(slider.sliderObject.children().length);
-    var moveParams = {
-        next: "next",
-        index: 0
+
+    slider.cssConfig = createSliderCss(400, 200);
+    slider.sliderFunction = initSlideProcedure(slider);
+    slider.matrix = createMatrix(slider.sliderObject.children().length);
+    slider.sliderBusy = sliderBusy();
+    slider.indexObject = createIndexObject(slider.sliderObject.children().length);
+    var moveFunctionConfig = createMoveObject(slider, ["autoSlider"]);
+
+    slider.autoSlider = function() {
+        var moveConfig = {
+            next: "prev",
+            offset: null
+        }
+        slider.interval = setInterval(function() {
+            slider.sliderBusy.setSliderBusy("SLIDER_BUSY");
+            slider.sliderFunction.slideProcedure.call(moveFunctionConfig, moveConfig);
+        }, 5000);
     }
+
+    slider.callMoveFunction = function(next, index) {
+        var moveParams = {};
+
+        moveParams.next = next;
+        slider.sliderBusy.setSliderBusy("SLIDER_BUSY");
+        clearInterval(slider.interval);
+        slider.interval = 0;
+        if (index)
+            moveParams.offset = slider.indexObject.getOffset(index);
+        slider.sliderFunction.slideProcedure.call(moveFunctionConfig, moveParams);
+    }
+
+    slider.autoSlider();
+    createSliderElement(slider);
     
     $('.mybutton').on("click", function() {
-        indexObject.incrementIndex();
-        moveParams.next = 'next';
-        moveParams.index = indexObject.getIndex();
-        sliderFunction.call(moveFunctionConfig, moveParams);
+        /* TODO: možda staviti u posebnu funkciju */
+        console.log("click to move: busy=" + slider.sliderBusy.getSliderBusy());
+        if (slider.sliderBusy.getSliderBusy() == "SLIDER_FREE") {
+            slider.callMoveFunction("prev", 0);
+        }
     });
+
     $('.skip').on("click", function() {
-        indexObject.decrementIndex();
-        moveParams.next = 'prev';
-        moveParams.index = indexObject.getIndex();
-        sliderFunction.call(moveFunctionConfig, moveParams);
+        console.log("skip: busy=" + slider.sliderBusy.getSliderBusy());
+        if (slider.sliderBusy.getSliderBusy() == "SLIDER_FREE") {
+            slider.callMoveFunction("next", 0);
+        }
     });
 });

@@ -45,12 +45,18 @@
     -webkit-transition-property: transform;
     -webkit-transition-duration: 3s;
     -webkit-transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+    -moz-transition-property: transform;
+    -moz-transition-duration: 3s;
+    -moz-transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .transitionClass {
     -webkit-transition-property: transform;
     -webkit-transition-duration: .1s;
     -webkit-transition-timing-function: linear;
+    -moz-transition-property: transform;
+    -moz-transition-duration: .1s;
+    -moz-transition-timing-function: linear;
 }
 
 .contentTransition {
