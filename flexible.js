@@ -2,16 +2,21 @@
 * Za napraviti:
 * auto slide, bind funkcija za executeSlide, isprobavanje drugačije implementacije execute, callback ... funkcija ali sa istim pozivima
 */
+
+/*
+* Create permutation matrix
+* length:   length of the element list
+*/
 function createMatrix(length)
 {
-    var array = new Array(length);
-    var i;
-    var temp = [];
-    var result;
+    var array = new Array(length), i,
+        temp = [], result;
+
     for (i = 0; i < length; i++) {
         array[i] = new Array(length);
         temp[i] = (i == length - 1) ? -1 : i;
     }
+
     array[0] = temp.slice();
     for (i = 1; i < length; i++) {
         result = temp.pop();
@@ -22,46 +27,51 @@ function createMatrix(length)
     return array;
 }
 
+/*
+* Create an object which manages index
+* length:    length of the element list
+*/
 function createIndexObject(length) 
 {
     var offset = 0, 
         index = 0, 
-        indexLength = length - 1;
+        indexLength = length - 1,
 
-    var incrementIndex = function() {
+    incrementIndex = function() {
         index++;
         console.log("incrementIndex: Increment:" + index);
         if (index > indexLength)
             index = 0;
-    }
+    },
 
-    var decrementIndex = function() {
+    decrementIndex = function() {
         index--;
         console.log("decrementIndex:" + index);
         if (index < 0)
             index = indexLength;
-    }
+    },
 
-    var updateIndex = function(next) {
+    updateIndex = function(next) {
         if (next == "next")
             incrementIndex();
         else
             decrementIndex();
-    }
+    },
 
-    var setIndex = function(value) {
+    /* TODO: probably should be removed */
+    setIndex = function(value) {
         index = value;
-    }
+    },
 
-    var getIndex = function() {
+    getIndex = function() {
         return index;
-    }
+    },
 
-    var getOffset = function(value) {
+    getOffset = function(value) {
         console.log("getOffset: index:" + index + " value:" + value);
         offset = Math.abs(index - value);
         return offset;
-    }
+    };
 
     return {
         updateIndex: updateIndex,
@@ -71,11 +81,17 @@ function createIndexObject(length)
     }
 }
 
+/*
+*  Initialize procedure from which sliding functions
+*  will be called
+*  slider:   main object which containes basic configuration
+*/
 function initSlideProcedure(slider)
 {
-    var sliderObject = slider.sliderObject;
+    /* TODO: maybe add duck typing for this object */
+    var sliderObject = slider.sliderObject,
 
-    var cssThreeSlideProc = function(slideParams) {
+    cssThreeSlideProc = function(slideParams) {
 
         sliderObject.unbind(this.transitionEvent);
         sliderObject.bind(this.transitionEvent, {params: slideParams,
@@ -83,9 +99,9 @@ function initSlideProcedure(slider)
                                                  skipFunction: "slideProcedure",
                                                  context: this}, this.sliderCallback);
         this.moveSlide(slideParams);
-    }
+    },
 
-    var animateSlideProc = function(slideParams) {
+    animateSlideProc = function(slideParams) {
         var params = {
             params: slideParams,
             skip: slideParams.skip,
@@ -93,45 +109,51 @@ function initSlideProcedure(slider)
             context: this
         };
         this.moveOldSlide(params);
-    }
+    },
 
-    var slideProcedure = function(slideParams) {
+    slideProcedure = function(slideParams) {
         console.log("cssThreeSlideProc: offset:" + slideParams.offset);
         if (slideParams.offset > 1)
             slideParams.skip = "SKIP";
         else
             slideParams.skip = "NONE";
-        if (1)
+        if (slider.useCssThree)
             cssThreeSlideProc.call(this, slideParams);
         else
             animateSlideProc.call(this, slideParams);
-    }
+    };
 
     return {
         slideProcedure: slideProcedure
     };
 }
 
+/*
+* Create an object containing sliding methods
+* slider:       main object which containes basic configuration
+* callbacks:    callbacks which should be called after sliding finishes
+*/
 function createMoveObject(slider, callbacks)
 {
-    var sliderObject = slider.sliderObject;
+    var sliderObject = slider.sliderObject,
 
-    var updateIndexParams = function(params) {
+    updateIndexParams = function(params) {
         params.offset--;
         slider.indexObject.updateIndex(params.next);
-    }
+    },
 
-    var moveOldSlide = function(params) {
+    /* This method should be called if CSS3 is not supported */
+    moveOldSlide = function(params) {
         var moveObject = params.params.next == "next" ? slider.moveNext : slider.movePrev;
-
+        updateIndexParams(params.params);
         sliderObject.animate(moveObject, 1000, (function(params, context) {
             return function() {
                 context.sliderCallback(params);
             }
         })(params, this));
-    }
+    },
 
-    var moveSlide = function(params) {
+    moveSlide = function(params) {
         var moveValue = params.next == "next" ? slider.moveNext : slider.movePrev,
             moveClass;
 
@@ -146,9 +168,9 @@ function createMoveObject(slider, callbacks)
                 sliderObject.css(slider.moveObject);
             }, 10);
         }, 10);
-    }
+    },
 
-    var sliderCallback = function(event) {
+    sliderCallback = function(event) {
         var array, value, listElement,
             params = event.data || event,
             fn = slider.sliderFunction[params.skipFunction], moveClass;
@@ -188,9 +210,9 @@ function createMoveObject(slider, callbacks)
                 }
             });
         }
-    }
+    },
 
-    var transitionEvent = slider.transEvent;
+    transitionEvent = slider.transEvent;
 
     return {
         sliderCallback: sliderCallback,
@@ -262,9 +284,9 @@ function createPager(slider)
             if (parseInt($(this).attr('slide_index')) == index)
                 $(this).addClass('active');
         });
-    }
+    },
 
-    var handlePagerClick = function(event) {
+    handlePagerClick = function(event) {
         var triggeredElement = $(event.target),
             clickIndex = parseInt(triggeredElement.attr("slide_index")),
             currentIndex = indexObject.getIndex(), next;
@@ -275,12 +297,12 @@ function createPager(slider)
             next = "next";
         else
             next = "prev";
-        console.log("handlePagerClick: currentIndex=" + clickIndex);
+        console.log("handlePagerClick: clickIndex=" + clickIndex);
         if (slider.sliderBusy.getSliderBusy() == "SLIDER_FREE") {
             updatePager(clickIndex);
             slider.callMoveFunction(next, clickIndex);
         }
-    }
+    };
     pager.find('a').on('click', handlePagerClick);
 
     return {
@@ -301,14 +323,14 @@ function createArrowControl(slider)
             slider.callMoveFunction("next");
             slider.pager.updatePager();
         }
-    }
+    },
 
-    var handleClickPrev = function() {
+    handleClickPrev = function() {
         if (slider.sliderBusy.getSliderBusy() == "SLIDER_FREE") {
             slider.callMoveFunction("prev");
             slider.pager.updatePager();
         }
-    }
+    };
 
     next.on("click", hanldeClickNext);
     prev.on("click", handleClickPrev);
@@ -316,13 +338,15 @@ function createArrowControl(slider)
 
 function sliderBusy()
 {
-    var busy = "SLIDER_FREE";
-    var setSliderBusy = function(param) {
+    var busy = "SLIDER_FREE",
+
+    setSliderBusy = function(param) {
         busy = param;
-    }
-    var getSliderBusy = function() {
+    },
+
+    getSliderBusy = function() {
         return busy;
-    }
+    };
 
     return {
         setSliderBusy: setSliderBusy,
@@ -330,26 +354,64 @@ function sliderBusy()
     }
 }
 
+function createVertical(slider)
+{
+    slider.permuteValue = slider.height;
+    slider.permuteProperty = 'top';
+    slider.moveProperty = slider.useCssThree ? slider.cssPrefix + '-transform':'top';
+    slider.defaultValue = slider.useCssThree ? 'translateY(0px)':'0px';
+    slider.moveNext = slider.useCssThree ? 'translateY(-' + slider.height + 'px)':{top:'-' + slider.height + 'px'};
+    slider.movePrev = slider.useCssThree ? 'translateY(' + slider.height + 'px)':{top:slider.height + 'px'};
+}
+
+function createHorizontal(slider)
+{
+    slider.permuteValue = slider.width;
+    slider.permuteProperty = 'left';
+    slider.moveProperty = slider.useCssThree ? slider.cssPrefix + '-transform':'left';
+    slider.defaultValue = slider.useCssThree ? 'translateX(0px)':'0px';
+    slider.moveNext = slider.useCssThree ? 'translateX(-' + slider.width + 'px)':{left: '-' + slider.width + 'px'};
+    slider.movePrev = slider.useCssThree ? 'translateX(' + slider.width + 'px)':{left: slider.width + 'px'};
+}
+
+function createSlider(slider)
+{
+    if (slider.option == "vertical")
+        createVertical(slider);
+    else
+        createHorizontal(slider);
+}
+
 /* TODO: malo skratiti ready() funkciju */
 $(document).ready(function() {
     var slider ={};
+    slider.width = 400;
+    slider.height = 200;
+    slider.option = 'horizontal';
     slider.sliderObject = $('.transitionobj');
     slider.cssClass = 'transitionClass2';
     slider.skipClass = 'transitionClass';
-
+    slider.useCssThree = (function(slider){
+        var div = document.createElement('div'), i, cssPrefix, animProp,
+            props = ['WebkitPerspective',
+                     'MozPerspective',
+                     'OPerspective',
+                     'msPerspective'];
+        for (i in props) {
+            if (div.style[props[i]] !== undefined) {
+                slider.cssPrefix = '-' + props[i].replace('Perspective', '').toLowerCase();
+                return true;
+            }
+        }
+        return false;
+    })(slider);
+    console.log("ready: useCssThree=" + slider.useCssThree);
     slider.property = {};
-    slider.permuteValue = 400;
-    slider.permuteProperty = 'left';
-
     slider.moveObject = {};
-    slider.moveProperty = "transform";
-    slider.defaultValue = 'translateX(0px)';
+    createSlider(slider);
 
     slider.transEvent = 'transitionend';
-    slider.moveNext = "translateX(-400px)"
-    slider.movePrev = "translateX(400px)"
-
-    slider.cssConfig = createSliderCss(400, 200);
+    slider.cssConfig = createSliderCss(slider.width, slider.height);
     slider.sliderFunction = initSlideProcedure(slider);
     slider.matrix = createMatrix(slider.sliderObject.children().length);
     slider.sliderBusy = sliderBusy();
@@ -386,7 +448,6 @@ $(document).ready(function() {
             moveParams.offset = offset;
         slider.sliderFunction.slideProcedure.call(moveFunctionConfig, moveParams);
     }
-
     
     slider.autoSlider();
     createSliderElement(slider);

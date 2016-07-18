@@ -83,6 +83,9 @@
     -moz-transition-property: transform;
     -moz-transition-duration: 1s;
     -moz-transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+    -ms-transition-property: transform;
+    -ms-transition-duration: 1s;
+    -ms-transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .transitionClass {
@@ -92,6 +95,9 @@
     -moz-transition-property: transform;
     -moz-transition-duration: .1s;
     -moz-transition-timing-function: linear;
+    -ms-transition-property: transform;
+    -ms-transition-duration: .1s;
+    -ms-transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .contentTransition {
