@@ -63,45 +63,48 @@ function createIndexObject(length)
         return offset;
     }
 
-    var getIndexStart = function() {
-        return indexStart;
-    }
-
     return {
         updateIndex: updateIndex,
         setIndex: setIndex,
         getIndex: getIndex,
-        getOffset: getOffset,
-        getIndexStart: getIndexStart
+        getOffset: getOffset
     }
 }
 
 function initSlideProcedure(slider)
 {
     var sliderObject = slider.sliderObject;
-    var cssThreeSlideProc = function(slideParams) {
 
-        console.log("cssThreeSlideProc: offset:" + slideParams.offset);
-        if (slideParams.offset > 1)
-            slideParams.skip = "SKIP";
-        else
-            slideParams.skip = "NONE";
+    var cssThreeSlideProc = function(slideParams) {
 
         sliderObject.unbind(this.transitionEvent);
         sliderObject.bind(this.transitionEvent, {params: slideParams,
                                                  skip: slideParams.skip,
                                                  skipFunction: "slideProcedure",
                                                  context: this}, this.sliderCallback);
-        this.moveSlide.call(sliderObject, slideParams);
+        this.moveSlide(slideParams);
     }
 
     var animateSlideProc = function(slideParams) {
-
+        var params = {
+            params: slideParams,
+            skip: slideParams.skip,
+            skipFunction: "slideProcedure",
+            context: this
+        };
+        this.moveOldSlide(params);
     }
 
     var slideProcedure = function(slideParams) {
-        /* TODO: check for css3 support */
-        cssThreeSlideProc.call(this, slideParams);
+        console.log("cssThreeSlideProc: offset:" + slideParams.offset);
+        if (slideParams.offset > 1)
+            slideParams.skip = "SKIP";
+        else
+            slideParams.skip = "NONE";
+        if (1)
+            cssThreeSlideProc.call(this, slideParams);
+        else
+            animateSlideProc.call(this, slideParams);
     }
 
     return {
@@ -113,12 +116,29 @@ function createMoveObject(slider, callbacks)
 {
     var sliderObject = slider.sliderObject;
 
+    var updateIndexParams = function(params) {
+        params.offset--;
+        slider.indexObject.updateIndex(params.next);
+    }
+
+    var moveOldSlide = function(params) {
+        var moveObject = params.params.next == "next" ? slider.moveNext : slider.movePrev;
+
+        sliderObject.animate(moveObject, 1000, (function(params, context) {
+            return function() {
+                context.sliderCallback(params);
+            }
+        })(params, this));
+    }
+
     var moveSlide = function(params) {
         var moveValue = params.next == "next" ? slider.moveNext : slider.movePrev,
             moveClass;
 
         moveClass = params.skip == "SKIP" ? slider.skipClass : slider.cssClass;
         console.log("moveSlide: moveClass=" + moveClass);
+        updateIndexParams(params);
+
         setTimeout(function() {
             sliderObject.addClass(moveClass);
             setTimeout(function() {
@@ -130,18 +150,17 @@ function createMoveObject(slider, callbacks)
 
     var sliderCallback = function(event) {
         var array, value, listElement,
-            fn = slider.sliderFunction[event.data.skipFunction], moveClass;
+            params = event.data || event,
+            fn = slider.sliderFunction[params.skipFunction], moveClass;
 
         console.log("sliderCallback: Calling callback");
-        event.data.params.offset--;
-        slider.indexObject.updateIndex(event.data.params.next);
         array = slider.matrix[slider.indexObject.getIndex()];
 
         console.log("sliderCallback: array=" + array);
         console.log("sliderCallback: Index in callback=" + slider.indexObject.getIndex());
-        console.log("sliderCallback: skip=" + event.data.skip);
+        console.log("sliderCallback: skip=" + params.skip);
 
-        moveClass = event.data.skip == "SKIP" ? slider.skipClass:slider.cssClass;
+        moveClass = params.skip == "SKIP" ? slider.skipClass:slider.cssClass;
         sliderObject.removeClass(moveClass);
         slider.moveObject[slider.moveProperty] = slider.defaultValue;
         sliderObject.css(slider.moveObject);
@@ -153,8 +172,8 @@ function createMoveObject(slider, callbacks)
             listElement.css(slider.property);
         });
 
-        if (event.data.skip == "SKIP")
-            fn.call(event.data.context, event.data.params);
+        if (params.skip == "SKIP")
+            fn.call(params.context, params.params);
         else {
             callbacks.forEach(function(element, index) {
                 slider.sliderBusy.setSliderBusy("SLIDER_FREE");
@@ -176,7 +195,8 @@ function createMoveObject(slider, callbacks)
     return {
         sliderCallback: sliderCallback,
         transitionEvent: transitionEvent,
-        moveSlide: moveSlide
+        moveSlide: moveSlide,
+        moveOldSlide: moveOldSlide
     };   
 }
 
@@ -208,10 +228,90 @@ function createSliderCss(width, height)
         height: height + 'px',
         position: 'absolute'
     }
+
     return {
         sliderListCss: listCss,
         sliderListElementCss: listElementCss
     }
+}
+
+function createPager(slider)
+{
+    var sliderContainer = slider.sliderObject.parent(),
+        pager =  $('<div class="pager_box"></div>'), htmlPager = '',
+        indexObject = slider.indexObject, i, wraper, pagerLinks;
+
+    sliderContainer.wrap('<div class="wraper"></div>');
+    wraper = sliderContainer.parent();
+    wraper.append(pager);
+
+    for (i = 0; i < slider.sliderObject.children().length; i++) {
+        htmlPager += '<div class="pager_item"><a href="#" slide_index="'+ i +'"></a></div>'
+    }
+    pager.append(htmlPager);
+    var slide_index = pager.find('a').first();
+    slide_index.addClass('active');
+    pagerLinks = pager.find('a');
+
+    var updatePager = function(index) {
+        var index = (typeof index != 'undefined') ? index:indexObject.getIndex();
+
+        console.log("updatePager: index=" + index);
+        pagerLinks.removeClass('active');
+        pagerLinks.each(function() {
+            if (parseInt($(this).attr('slide_index')) == index)
+                $(this).addClass('active');
+        });
+    }
+
+    var handlePagerClick = function(event) {
+        var triggeredElement = $(event.target),
+            clickIndex = parseInt(triggeredElement.attr("slide_index")),
+            currentIndex = indexObject.getIndex(), next;
+
+        if (clickIndex == currentIndex)
+            return;
+        else if (clickIndex > currentIndex)
+            next = "next";
+        else
+            next = "prev";
+        console.log("handlePagerClick: currentIndex=" + clickIndex);
+        if (slider.sliderBusy.getSliderBusy() == "SLIDER_FREE") {
+            updatePager(clickIndex);
+            slider.callMoveFunction(next, clickIndex);
+        }
+    }
+    pager.find('a').on('click', handlePagerClick);
+
+    return {
+        updatePager: updatePager
+    }
+}
+
+function createArrowControl(slider)
+{
+    var sliderContainer = slider.sliderObject.parent(),
+        next = $('<img src=\"right_arrow.png\" class="right_control"/>'),
+        prev = $('<img src=\"left_arrow.png\" class="left_control"/>');
+    sliderContainer.prepend(next);
+    sliderContainer.prepend(prev);
+
+    var hanldeClickNext = function() {
+        if (slider.sliderBusy.getSliderBusy() == "SLIDER_FREE") {
+            slider.callMoveFunction("next");
+            slider.pager.updatePager();
+        }
+    }
+
+    var handleClickPrev = function() {
+        if (slider.sliderBusy.getSliderBusy() == "SLIDER_FREE") {
+            slider.callMoveFunction("prev");
+            slider.pager.updatePager();
+        }
+    }
+
+    next.on("click", hanldeClickNext);
+    prev.on("click", handleClickPrev);
 }
 
 function sliderBusy()
@@ -236,61 +336,58 @@ $(document).ready(function() {
     slider.sliderObject = $('.transitionobj');
     slider.cssClass = 'transitionClass2';
     slider.skipClass = 'transitionClass';
+
     slider.property = {};
-    slider.permuteValue = 200;
-    slider.permuteProperty = 'top';
-    slider.defaultValue = "translateY(0px)";
-    slider.transEvent = 'transitionend';
-    slider.moveNext = "translateY(-200px)";
-    slider.movePrev = "translateY(200px)";
+    slider.permuteValue = 400;
+    slider.permuteProperty = 'left';
+
     slider.moveObject = {};
     slider.moveProperty = "transform";
+    slider.defaultValue = 'translateX(0px)';
+
+    slider.transEvent = 'transitionend';
+    slider.moveNext = "translateX(-400px)"
+    slider.movePrev = "translateX(400px)"
 
     slider.cssConfig = createSliderCss(400, 200);
     slider.sliderFunction = initSlideProcedure(slider);
     slider.matrix = createMatrix(slider.sliderObject.children().length);
     slider.sliderBusy = sliderBusy();
     slider.indexObject = createIndexObject(slider.sliderObject.children().length);
+    slider.pager = createPager(slider);
+    slider.arrows = createArrowControl(slider);
     var moveFunctionConfig = createMoveObject(slider, ["autoSlider"]);
 
     slider.autoSlider = function() {
         var moveConfig = {
-            next: "prev",
+            next: "next",
             offset: null
         }
         slider.interval = setInterval(function() {
             slider.sliderBusy.setSliderBusy("SLIDER_BUSY");
             slider.sliderFunction.slideProcedure.call(moveFunctionConfig, moveConfig);
         }, 5000);
+        slider.pagerInterval = setInterval(function() {
+            slider.pager.updatePager();
+        }, 5000);
     }
 
     slider.callMoveFunction = function(next, index) {
-        var moveParams = {};
+        var moveParams = {}, offset;
 
         moveParams.next = next;
         slider.sliderBusy.setSliderBusy("SLIDER_BUSY");
         clearInterval(slider.interval);
+        clearInterval(slider.pagerInterval);
         slider.interval = 0;
-        if (index)
-            moveParams.offset = slider.indexObject.getOffset(index);
+
+        offset = slider.indexObject.getOffset(index);
+        if (offset > 1)
+            moveParams.offset = offset;
         slider.sliderFunction.slideProcedure.call(moveFunctionConfig, moveParams);
     }
 
+    
     slider.autoSlider();
     createSliderElement(slider);
-    
-    $('.mybutton').on("click", function() {
-        /* TODO: možda staviti u posebnu funkciju */
-        console.log("click to move: busy=" + slider.sliderBusy.getSliderBusy());
-        if (slider.sliderBusy.getSliderBusy() == "SLIDER_FREE") {
-            slider.callMoveFunction("prev", 0);
-        }
-    });
-
-    $('.skip').on("click", function() {
-        console.log("skip: busy=" + slider.sliderBusy.getSliderBusy());
-        if (slider.sliderBusy.getSliderBusy() == "SLIDER_FREE") {
-            slider.callMoveFunction("next", 0);
-        }
-    });
 });
