@@ -1,3 +1,4 @@
+;(function($) {
 /*
 * Create permutation matrix
 * length:    length of the element list
@@ -414,14 +415,19 @@ function createSlider(slider)
         createHorizontal(slider);
 }
 
-$(document).ready(function() {
+var defaultParams = {
+    width: 400,
+    height: 200,
+
+    option: 'horizontal',
+    cssClass: 'transitionClass2',
+    skipClass: 'transitionClass'
+}
+
+$.fn.easySlider = function(options) {
     var slider ={};
-    slider.width = 400;
-    slider.height = 200;
-    slider.option = 'horizontal';
-    slider.sliderObject = $('.transitionobj');
-    slider.cssClass = 'transitionClass2';
-    slider.skipClass = 'transitionClass';
+    slider = $.extend({}, defaultParams, options);
+    slider.sliderObject = this;
 
     /* Check if we're on a modern browser or a dinosaur */
     slider.useCssThree = (function(slider){
@@ -492,5 +498,6 @@ $(document).ready(function() {
     }
     
     slider.autoSlider();
-});
+}
+})(jQuery);
 
