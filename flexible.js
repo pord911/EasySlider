@@ -86,7 +86,7 @@ function initSlideProcedure(slider)
 {
     /* TODO: maybe add duck typing for this object */
     var sliderObject = slider.sliderObject,
-
+    /* TODO: add a name instead of this here */
     cssThreeSlideProc = function(slideParams) {
 
         sliderObject.unbind(this.transitionEvent);
@@ -96,7 +96,7 @@ function initSlideProcedure(slider)
                                                  context: this}, this.sliderCallback);
         this.moveSlide(slideParams);
     },
-
+    /* TODO: maybe add additional properties to slideParams */
     animateSlideProc = function(slideParams) {
         var params = {
             params: slideParams,
@@ -157,6 +157,12 @@ function initMoveObject(slider, callbacks)
         console.log("moveSlide: moveClass=" + moveClass);
         updateIndexParams(params);
 
+        /* Problem: After adding css class, the change
+         *          in CSS property (e.g. translateX) would
+         *          not triger the animation.
+         * Fix: Add a delay in order for addition of css 
+         *      class to take effect 
+         */
         setTimeout(function() {
             sliderObject.addClass(moveClass);
             setTimeout(function() {
