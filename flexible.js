@@ -2,7 +2,9 @@
 
 /*
 * Initialize lazy loading of slider object images
-* slider:    main object which containes basic configuration
+* sliderObject:    jQuery slider object
+* element:         element which loaded in a lazy manner
+* animateParams:   parameters for lazy loading animation
 */
 function initLazyLoading(sliderObject, element, animateParams)
 {
@@ -316,7 +318,7 @@ function createPager(slider)
 {
     var sliderContainer = slider.sliderObject.parent(),
         pager =  $('<div class="pager_box"></div>'), htmlPager = '',
-        indexObject = slider.indexObject, i, wraper, pagerLinks;
+        i, wraper, pagerLinks;
 
     sliderContainer.wrap('<div class="wraper"></div>');
     wraper = sliderContainer.parent();
@@ -333,7 +335,7 @@ function createPager(slider)
 
     /* Pager API functions for controling the pager CSS */
     var updatePager = function(index) {
-        var index = (typeof index != 'undefined') ? index:indexObject.getIndex();
+        var index = (typeof index != 'undefined') ? index:slider.indexObject.getIndex();
 
         console.log("updatePager: index=" + index);
         pagerLinks.removeClass('active');
@@ -355,7 +357,7 @@ function createPager(slider)
         else
             next = "prev";
         console.log("handlePagerClick: clickIndex=" + clickIndex);
-        if (slider.sliderState.getSliderState() == "SLIDER_FREE") {
+        if (slider.sliderState.checkSliderState("SLIDER_FREE")) {
             updatePager(clickIndex);
             slider.callMoveFunction(next, clickIndex);
         }
@@ -381,14 +383,14 @@ function createArrowControl(slider)
 
     /* Arrow API functions for controling the arrow CSS */
     var hanldeClickNext = function() {
-        if (slider.sliderState.getSliderState() == "SLIDER_FREE") {
+        if (slider.sliderState.checkSliderState("SLIDER_FREE")) {
             slider.callMoveFunction("next");
             slider.pager.updatePager();
         }
     },
 
     handleClickPrev = function() {
-        if (slider.sliderState.getSliderState() == "SLIDER_FREE") {
+        if (slider.sliderState.checkSliderState("SLIDER_FREE")) {
             slider.callMoveFunction("prev");
             slider.pager.updatePager();
         }
@@ -411,13 +413,13 @@ function initSliderState()
         busy = param;
     },
 
-    getSliderState = function() {
-        return busy;
+    checkSliderState = function(state) {
+        return busy == state;
     };
 
     return {
         setSliderState: setSliderState,
-        getSliderState: getSliderState
+        checkSliderState: checkSliderState
     }
 }
 
@@ -509,6 +511,10 @@ $.fn.easySlider = function(options) {
     slider.moveConfig = {};
     createSlider(slider);
     
+     /* Create slider controls */
+    slider.pager = createPager(slider);
+    slider.arrows = createArrowControl(slider);
+
     /* Create slider html and css */
     slider.cssConfig = createSliderCss(slider.width, slider.height);
     slider.matrix = initMatrix(slider.sliderObject.children().length);
@@ -522,10 +528,6 @@ $.fn.easySlider = function(options) {
     slider.sliderState = initSliderState();
     slider.indexObject = initIndexObject(slider.sliderObject.children().length);
     var moveFunctionConfig = initMoveObject(slider, ["autoSlider"]);
-
-    /* Create slider controls */
-    slider.pager = createPager(slider);
-    slider.arrows = createArrowControl(slider);
 
     slider.autoSlider = function() {
         var moveConfig = {
@@ -555,7 +557,7 @@ $.fn.easySlider = function(options) {
             moveParams.offset = offset;
         slider.sliderProcObj.slideProcedure.call(moveFunctionConfig, moveParams);
     }
-    
+
     slider.autoSlider();
 }
 })(jQuery);
