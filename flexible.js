@@ -24,11 +24,11 @@ function initLazyLoading(sliderObject, element, animateParams)
         lazyLoadElements: function() {
             var el = sliderObject.find(element + '[data-src]'), item, obj = this;
 
-            sliderContainer.addClass(animateParams.waitClass);
+            sliderContainer.addClass(animateParams.lazyWaitClass);
             $(el).each(function() {
                 if (obj.isElementVisible(this)) {
                     $(this).on("load", function() {
-                        $(this).animate(animateParams.cssProp, animateParams.Time);
+                        $(this).animate(animateParams.lazyAnimProp, animateParams.lazyAnimTime);
                         sliderContainer.addClass(animateParams.waitClass);
                     });
                     $(this).attr("src", $(this).attr("data-src"));
