@@ -76,6 +76,10 @@
     right: 0px;
 }
 
+.lazy-hidden {
+    background: url('loading.gif') no-repeat 50% 50%;
+}
+
 .transitionClass2 {
     -webkit-transition-property: transform;
     -webkit-transition-duration: 1s;

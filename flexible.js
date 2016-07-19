@@ -1,4 +1,50 @@
 ;(function($) {
+
+/*
+* Initialize lazy loading of slider object images
+* slider:    main object which containes basic configuration
+*/
+function initLazyLoading(sliderObject, element, animateParams)
+{
+    var sliderContainer = sliderObject.parent(),
+        loadingEvents = "load scroll moveFinished",
+    handleLazyLoad = {
+        isElementVisible: function(el) {
+            /* TODO: check compatibility for this function */
+            var rect = el.getBoundingClientRect();
+
+            return(
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= window.innerHeight &&
+                rect.right <= window.innerWidth
+            );
+        },
+
+        lazyLoadElements: function() {
+            var el = sliderObject.find(element + '[data-src]'), item, obj = this;
+
+            sliderContainer.addClass(animateParams.waitClass);
+            $(el).each(function() {
+                if (obj.isElementVisible(this)) {
+                    $(this).on("load", function() {
+                        $(this).animate(animateParams.cssProp, animateParams.Time);
+                        sliderContainer.addClass(animateParams.waitClass);
+                    });
+                    $(this).attr("src", $(this).attr("data-src"));
+                    $(this).removeAttr("data-src");
+                }
+            });
+        }
+    };
+
+    $(window).on(loadingEvents, (function(obj) {
+        return function() {
+            obj.lazyLoadElements();
+        }
+    })(handleLazyLoad));
+}
+
 /*
 * Create permutation matrix
 * length:    length of the element list
@@ -54,11 +100,6 @@ function initIndexObject(length)
             decrementIndex();
     },
 
-    /* TODO: probably should be removed */
-    setIndex = function(value) {
-        index = value;
-    },
-
     getIndex = function() {
         return index;
     },
@@ -71,7 +112,6 @@ function initIndexObject(length)
 
     return {
         updateIndex: updateIndex,
-        setIndex: setIndex,
         getIndex: getIndex,
         getOffset: getOffset
     }
@@ -427,13 +467,24 @@ var defaultParams = {
 
     option: 'horizontal',
     cssClass: 'transitionClass2',
-    skipClass: 'transitionClass'
+    skipClass: 'transitionClass',
+
+    lazyElement: 'img',
+    lazyWaitClass: 'lazy-hidden',
+    lazyAnimTime: 200
 }
 
 $.fn.easySlider = function(options) {
     var slider ={};
     slider = $.extend({}, defaultParams, options);
     slider.sliderObject = this;
+    var lazyParams = {
+        lazyAnimProp: {
+            opacity: 1
+        },
+        lazyAnimTime: slider.lazyAnimTime,
+        lazyWaitClass: slider.lazyWaitClass
+    };
 
     /* Check if we're on a modern browser or a dinosaur */
     slider.useCssThree = (function(slider){
@@ -463,6 +514,8 @@ $.fn.easySlider = function(options) {
     slider.matrix = initMatrix(slider.sliderObject.children().length);
     createSliderElement(slider);
     slider.transEvent = 'transitionend';
+
+    initLazyLoading(slider.sliderObject, slider.lazyElement, lazyParams);
 
     /* Initialize basic slider functions and properties */
     slider.sliderProcObj = initSlideProcedure(slider);
