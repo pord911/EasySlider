@@ -108,7 +108,10 @@ function initIndexObject(length)
 
     getOffset = function(value) {
         console.log("getOffset: index:" + index + " value:" + value);
-        offset = Math.abs(index - value);
+        if (value < 0 || value > indexLength)
+            offset = 0;
+        else
+            offset = Math.abs(index - value);
         return offset;
     };
 
@@ -171,7 +174,7 @@ function initSlideProcedure(slider)
 * slider:       main object which containes basic configuration
 * callbacks:    callbacks which should be called after sliding finishes
 */
-function initMoveObject(slider, callbacks)
+function initMoveObject(slider)
 {
     var sliderObject = slider.sliderObject,
 
@@ -217,7 +220,8 @@ function initMoveObject(slider, callbacks)
     sliderCallback = function(event) {
         var array, value, listElement,
             params = event.data || event,
-            fn = slider.sliderProcObj[params.skipFunction], moveClass;
+            fn = slider.sliderProcObj[params.skipFunction], moveClass,
+            callbacks = params.params.callbacks;
 
         console.log("sliderCallback: Calling callback");
         array = slider.matrix[slider.indexObject.getIndex()];
@@ -242,7 +246,6 @@ function initMoveObject(slider, callbacks)
             fn.call(params.context, params.params);
         else {
             callbacks.forEach(function(element, index) {
-                slider.sliderState.setSliderState("SLIDER_FREE");
                 /* TODO: popraviti da prepoznaje od kud dolazi callback, da li slider ili freelance */
                 if (element == "autoSlider" && !slider.interval) {
                     console.log("sliderCallback: Calling autocallback");
@@ -253,6 +256,7 @@ function initMoveObject(slider, callbacks)
                     console.log("sliderCallback: Calling callbacks!");
                 }
             });
+            slider.sliderState.setSliderState("SLIDER_FREE");
         }
     },
 
@@ -314,7 +318,7 @@ function createSliderCss(width, height)
 * Create pager control and API
 * slider:    main object which containes basic configuration
 */
-function createPager(slider)
+function createPager(slider, callbacks)
 {
     var sliderContainer = slider.sliderObject.parent(),
         pager =  $('<div class="pager_box"></div>'), htmlPager = '',
@@ -348,7 +352,7 @@ function createPager(slider)
     handlePagerClick = function(event) {
         var triggeredElement = $(event.target),
             clickIndex = parseInt(triggeredElement.attr("slide_index")),
-            currentIndex = indexObject.getIndex(), next;
+            currentIndex = slider.indexObject.getIndex(), next;
 
         if (clickIndex == currentIndex)
             return;
@@ -359,7 +363,7 @@ function createPager(slider)
         console.log("handlePagerClick: clickIndex=" + clickIndex);
         if (slider.sliderState.checkSliderState("SLIDER_FREE")) {
             updatePager(clickIndex);
-            slider.callMoveFunction(next, clickIndex);
+            slider.callMoveFunction(next, clickIndex, callbacks);
         }
     };
     pager.find('a').on('click', handlePagerClick);
@@ -373,7 +377,7 @@ function createPager(slider)
 * Create arrows control and API
 * slider:    main object which containes basic configuration
 */
-function createArrowControl(slider)
+function createArrowControl(slider, callbacks)
 {
     var sliderContainer = slider.sliderObject.parent(),
         next = $('<img src=\"right_arrow.png\" class="right_control"/>'),
@@ -384,14 +388,14 @@ function createArrowControl(slider)
     /* Arrow API functions for controling the arrow CSS */
     var hanldeClickNext = function() {
         if (slider.sliderState.checkSliderState("SLIDER_FREE")) {
-            slider.callMoveFunction("next");
+            slider.callMoveFunction("next", -1, callbacks);
             slider.pager.updatePager();
         }
     },
 
     handleClickPrev = function() {
         if (slider.sliderState.checkSliderState("SLIDER_FREE")) {
-            slider.callMoveFunction("prev");
+            slider.callMoveFunction("prev", -1, callbacks);
             slider.pager.updatePager();
         }
     };
@@ -506,14 +510,15 @@ $.fn.easySlider = function(options) {
 
     console.log("ready: useCssThree=" + slider.useCssThree);
 
+    var defaultCallbacks = ["autoSlider"];
     /* Get slider moving configuration */
     slider.listIterator = {};
     slider.moveConfig = {};
     createSlider(slider);
     
      /* Create slider controls */
-    slider.pager = createPager(slider);
-    slider.arrows = createArrowControl(slider);
+    slider.pager = createPager(slider, defaultCallbacks);
+    slider.arrows = createArrowControl(slider, []);
 
     /* Create slider html and css */
     slider.cssConfig = createSliderCss(slider.width, slider.height);
@@ -527,11 +532,12 @@ $.fn.easySlider = function(options) {
     slider.sliderProcObj = initSlideProcedure(slider);
     slider.sliderState = initSliderState();
     slider.indexObject = initIndexObject(slider.sliderObject.children().length);
-    var moveFunctionConfig = initMoveObject(slider, ["autoSlider"]);
+    var moveFunctionConfig = initMoveObject(slider);
 
     slider.autoSlider = function() {
         var moveConfig = {
             next: "next",
+            callbacks: [],
             offset: null
         }
         slider.interval = setInterval(function() {
@@ -543,10 +549,11 @@ $.fn.easySlider = function(options) {
         }, 5000);
     }
 
-    slider.callMoveFunction = function(next, index) {
+    slider.callMoveFunction = function(next, index, callbacks) {
         var moveParams = {}, offset;
 
         moveParams.next = next;
+        moveParams.callbacks = callbacks;
         slider.sliderState.setSliderState("SLIDER_BUSY");
         clearInterval(slider.interval);
         clearInterval(slider.pagerInterval);
@@ -557,6 +564,17 @@ $.fn.easySlider = function(options) {
             moveParams.offset = offset;
         slider.sliderProcObj.slideProcedure.call(moveFunctionConfig, moveParams);
     }
+
+    slider.sliderObject.parent().on("mouseenter", function(){
+        console.log("mouseenter");
+        clearInterval(slider.interval);
+        clearInterval(slider.pagerInterval);
+        slider.interval = 0;
+    });
+    slider.sliderObject.parent().on("mouseleave", function(){
+        console.log("mouseleave");
+        slider.autoSlider();
+    });
 
     slider.autoSlider();
 }
