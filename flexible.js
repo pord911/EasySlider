@@ -139,7 +139,7 @@ function initSlideProcedure(slider)
                                                  skip: slideParams.skip,
                                                  skipFunction: "slideProcedure",
                                                  context: this}, this.sliderCallback);
-        this.moveSlide(slideParams);
+        this.moveCssSlide(slideParams);
     },
     /* TODO: maybe add additional properties to slideParams */
     animateSlideProc = function(slideParams) {
@@ -149,7 +149,7 @@ function initSlideProcedure(slider)
             skipFunction: "slideProcedure",
             context: this
         };
-        this.moveOldSlide(params);
+        this.moveAnimSlide(params);
     },
 
     slideProcedure = function(slideParams) {
@@ -174,73 +174,57 @@ function initSlideProcedure(slider)
 * slider:       main object which containes basic configuration
 * callbacks:    callbacks which should be called after sliding finishes
 */
-function initMoveObject(slider)
+function SliderMain(slider)
 {
-    var sliderObject = slider.sliderObject,
+    this.slider = slider;
+    this.sliderObject = slider.sliderObject;
+    this.indexObject = slider.indexObject;
+    this.transitionEvent = slider.transEvent;
+}
 
-    updateIndexParams = function(params) {
-        params.offset--;
-        slider.indexObject.updateIndex(params.next);
-    },
+/* This method should be called if CSS3 is not supported */
+SliderMain.prototype.moveAnimSlide = function(params) {
+    var slider = this.slider, sliderObject = this.sliderObject,
+        moveObject = params.params.next == "next" ? slider.moveNext : slider.movePrev,
+        skipObject = params.skip === "SKIP" ? slider.skipAnim : slider.moveAnim;
 
-    /* This method should be called if CSS3 is not supported */
-    moveOldSlide = function(params) {
-        var moveObject = params.params.next == "next" ? slider.moveNext : slider.movePrev;
-        updateIndexParams(params.params);
-        sliderObject.animate(moveObject, 1000, (function(params, context) {
-            return function() {
-                context.sliderCallback(params);
-            }
-        })(params, this));
-    },
+    this.updateIndexParams(params);
+    sliderObject.animate(moveObject, moveObject, (function(params, context) {
+        return function() {
+            context.sliderCallback(params);
+        }
+    })(params, this));
+}
 
-    moveSlide = function(params) {
-        var moveValue = params.next == "next" ? slider.moveNext : slider.movePrev,
-            moveClass;
-
+SliderMain.prototype.moveCssSlide = function(params) {
+    var slider = this.slider, sliderObject = this.sliderObject,
+        moveValue = params.next == "next" ? slider.moveNext : slider.movePrev,
         moveClass = params.skip == "SKIP" ? slider.skipClass : slider.cssClass;
-        console.log("moveSlide: moveClass=" + moveClass);
-        updateIndexParams(params);
 
-        /* Problem: After adding css class, the change
-         *          in CSS property (e.g. translateX) would
-         *          not triger the animation.
-         * Fix: Add a delay in order for addition of css 
-         *      class to take effect 
-         */
+    this.updateIndexParams(params);
+    /* Problem: After adding css class, the change
+     *          in CSS property (e.g. translateX) would
+     *          not triger the animation.
+     * Fix: Add a delay in order for addition of css
+     *      class to take effect
+     */
+    setTimeout(function() {
+        sliderObject.addClass(moveClass);
         setTimeout(function() {
-            sliderObject.addClass(moveClass);
-            setTimeout(function() {
-                slider.moveConfig[slider.moveConfigProp] = moveValue;
-                sliderObject.css(slider.moveConfig);
-            }, 10);
+            slider.moveConfig[slider.moveConfigProp] = moveValue;
+            sliderObject.css(slider.moveConfig);
         }, 10);
-    },
+    }, 10);
+}
 
-    sliderCallback = function(event) {
-        var array, value, listElement,
-            params = event.data || event,
-            fn = slider.sliderProcObj[params.skipFunction], moveClass,
-            callbacks = params.params.callbacks;
+SliderMain.prototype.sliderCallback = function(event) {
+    var params = event.data || event, context = params.context,
+        slider = context.slider, fn = slider.sliderProcObj[params.skipFunction],
+        callbacks = params.params.callbacks;
 
-        console.log("sliderCallback: Calling callback");
-        array = slider.matrix[slider.indexObject.getIndex()];
-
-        console.log("sliderCallback: array=" + array);
-        console.log("sliderCallback: Index in callback=" + slider.indexObject.getIndex());
-        console.log("sliderCallback: skip=" + params.skip);
-
-        moveClass = params.skip == "SKIP" ? slider.skipClass:slider.cssClass;
-        sliderObject.removeClass(moveClass);
-        slider.moveConfig[slider.moveConfigProp] = slider.moveConfigDefVal;
-        sliderObject.css(slider.moveConfig);
-
-        sliderObject.children().each(function(index) {
-            listElement = $(this);
-            value = array[index] * slider.listIteratorValue;
-            slider.listIterator[slider.listIteratorProp] = value + 'px';
-            listElement.css(slider.listIterator);
-        });
+        context.removeSliderClass(params);
+        context.setCssToDefault();
+        context.reallocateSliderList();
 
         if (params.skip == "SKIP")
             fn.call(params.context, params.params);
@@ -258,16 +242,39 @@ function initMoveObject(slider)
             });
             slider.sliderState.setSliderState("SLIDER_FREE");
         }
-    },
+}
 
-    transitionEvent = slider.transEvent;
+SliderMain.prototype.removeSliderClass = function(params) {
+    var slider = this.slider, sliderObject = this.sliderObject,
+        moveClass = params.skip == "SKIP" ? slider.skipClass : slider.cssClass;
+    sliderObject.removeClass(moveClass);
+}
 
-    return {
-        sliderCallback: sliderCallback,
-        transitionEvent: transitionEvent,
-        moveSlide: moveSlide,
-        moveOldSlide: moveOldSlide
-    };   
+SliderMain.prototype.setCssToDefault = function() {
+    var slider = this.slider, sliderObject = this.sliderObject;
+
+    slider.moveConfig[slider.moveConfigProp] = slider.moveConfigDefVal;
+    sliderObject.css(slider.moveConfig);
+}
+
+SliderMain.prototype.reallocateSliderList = function() {
+    var slider = this.slider, sliderObject = this.sliderObject,
+        indexObject = this.indexObject, array, value, listElement;
+
+    array = slider.matrix[indexObject.getIndex()];
+    sliderObject.children().each(function(index) {
+        listElement = $(this);
+        value = array[index] * slider.listIteratorValue;
+        slider.listIterator[slider.listIteratorProp] = value + 'px';
+        listElement.css(slider.listIterator);
+    });
+}
+
+SliderMain.prototype.updateIndexParams = function(params) {
+    var slider = this.slider;
+
+    params.offset--;
+    slider.indexObject.updateIndex(params.next);
 }
 
 /*
@@ -532,7 +539,7 @@ $.fn.easySlider = function(options) {
     slider.sliderProcObj = initSlideProcedure(slider);
     slider.sliderState = initSliderState();
     slider.indexObject = initIndexObject(slider.sliderObject.children().length);
-    var moveFunctionConfig = initMoveObject(slider);
+    var moveFunctionConfig = new SliderMain(slider);
 
     slider.autoSlider = function() {
         var moveConfig = {
@@ -541,6 +548,7 @@ $.fn.easySlider = function(options) {
             offset: null
         }
         slider.interval = setInterval(function() {
+            /* Maybe add setting of state to move functions */
             slider.sliderState.setSliderState("SLIDER_BUSY");
             slider.sliderProcObj.slideProcedure.call(moveFunctionConfig, moveConfig);
         }, 5000);
