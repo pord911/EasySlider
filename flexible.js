@@ -277,6 +277,17 @@ SliderMain.prototype.updateIndexParams = function(params) {
     slider.indexObject.updateIndex(params.next);
 }
 
+function FadeSlider(slider) {
+    SliderMain.call(this, slider);
+
+    this.moveCssSlide = function() {
+
+    }
+}
+
+FadeSlider.prototype = Object.create(SliderMain.prototype);
+FadeSlider.prototype.constructor = FadeSlider;
+
 /*
 * Set slider css values and create it
 * slider:    main object which containes basic configuration
