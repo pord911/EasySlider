@@ -2,9 +2,9 @@
 
 /*
 * Initialize lazy loading of slider object images
-* sliderObject:    jQuery slider object
-* element:         element which loaded in a lazy manner
-* animateParams:   parameters for lazy loading animation
+* @param sliderObject    jQuery slider object
+* @param element         element which loaded in a lazy manner
+* @param animateParams   parameters for lazy loading animation
 */
 function initLazyLoading(sliderObject, element, animateParams)
 {
@@ -47,35 +47,42 @@ function initLazyLoading(sliderObject, element, animateParams)
     })(handleLazyLoad));
 }
 
-/*
-* Create permutation matrix
-* length:    length of the element list
-*/
-function initMatrix(length)
-{
-    var array = new Array(length), i,
-        temp = [], result;
 
-    for (i = 0; i < length; i++) {
-        array[i] = new Array(length);
-        temp[i] = (i == length - 1) ? -1 : i;
+/**
+ * Create a permutation matrix.
+ * @param length  Length of elements
+ */
+function initMatrix( length )
+{
+    var array = new Array( length ), i, temp = [];
+
+    for ( i = 0; i < length; i++ ) {
+        array[ i ] = new Array( length );
+        temp[ i ] = ( i == length - 1 ) ? -1 : i;
     }
 
-    array[0] = temp.slice();
-    for (i = 1; i < length; i++) {
-        result = temp.pop();
-        temp.splice(0, 0, result);
-        array[i] = temp.slice();
+    /*
+     * Create permutated matrix. I.e.
+     * |  0,  1,  2, -1 |
+     * | -1,  0,  1,  2 |
+     * |  2, -1,  0,  1 |
+     * |  1,  2, -1,  0 |
+     */
+    array[ 0 ] = temp.slice();
+    for ( i = 1; i < length; i++ ) {
+        /* Put last element at first place */
+        temp.splice( 0, 0, temp.pop() );
+        array[ i ] = temp.slice();
     }
 
     return array;
 }
 
 /*
-* Create an object which manages index
-* length:    length of the element list
+* Create an object which manages index.
+* @param length  Length of the element list.
 */
-function initIndexObject(length) 
+function initIndexObject( length ) 
 {
     var offset = 0, 
         index = 0, 
@@ -84,19 +91,19 @@ function initIndexObject(length)
     incrementIndex = function() {
         index++;
         console.log("incrementIndex: Increment:" + index);
-        if (index > indexLength)
+        if ( index > indexLength )
             index = 0;
     },
 
     decrementIndex = function() {
         index--;
         console.log("decrementIndex:" + index);
-        if (index < 0)
+        if ( index < 0 )
             index = indexLength;
     },
 
-    updateIndex = function(next) {
-        if (next == "next")
+    updateIndex = function( next ) {
+        if ( next == "next" )
             incrementIndex();
         else
             decrementIndex();
@@ -106,12 +113,12 @@ function initIndexObject(length)
         return index;
     },
 
-    getOffset = function(value) {
+    getOffset = function( value ) {
         console.log("getOffset: index:" + index + " value:" + value);
-        if (value < 0 || value > indexLength)
+        if ( value < 0 || value > indexLength )
             offset = 0;
         else
-            offset = Math.abs(index - value);
+            offset = Math.abs( index - value );
         return offset;
     };
 
@@ -124,44 +131,45 @@ function initIndexObject(length)
 
 /*
 *  Initialize procedure from which sliding functions
-*  will be called
-*  slider:    main object which containes basic configuration
+*  will be called.
+*  @param slider    Main object which containes basic configuration.
 */
-function initSlideProcedure(slider)
+function initSlideProcedure( slider )
 {
     /* TODO: maybe add duck typing for this object */
     var sliderObject = slider.sliderObject,
     /* TODO: add a name instead of this here */
-    cssThreeSlideProc = function(slideParams) {
+    cssThreeSlideProc = function( slideParams ) {
 
-        sliderObject.unbind(this.transitionEvent);
-        sliderObject.bind(this.transitionEvent, {params: slideParams,
-                                                 skip: slideParams.skip,
-                                                 skipFunction: "slideProcedure",
-                                                 context: this}, this.sliderCallback);
-        this.moveCssSlide(slideParams);
+        sliderObject.unbind( this.transitionEvent );
+        sliderObject.bind( this.transitionEvent, { params: slideParams,
+                                                   skip: slideParams.skip,
+                                                   skipFunction: "slideProcedure",
+                                                   context: this }, this.sliderCallback );
+        this.moveCssSlide( slideParams );
     },
+
     /* TODO: maybe add additional properties to slideParams */
-    animateSlideProc = function(slideParams) {
+    animateSlideProc = function( slideParams ) {
         var params = {
             params: slideParams,
             skip: slideParams.skip,
             skipFunction: "slideProcedure",
             context: this
         };
-        this.moveAnimSlide(params);
+        this.moveAnimSlide( params );
     },
 
-    slideProcedure = function(slideParams) {
+    slideProcedure = function( slideParams ) {
         console.log("cssThreeSlideProc: offset:" + slideParams.offset);
-        if (slideParams.offset > 1)
+        if ( slideParams.offset > 1 )
             slideParams.skip = "SKIP";
         else
             slideParams.skip = "NONE";
-        if (slider.useCssThree)
-            cssThreeSlideProc.call(this, slideParams);
+        if ( slider.useCssThree )
+            cssThreeSlideProc.call( this, slideParams );
         else
-            animateSlideProc.call(this, slideParams);
+            animateSlideProc.call( this, slideParams );
     };
 
     return {
@@ -170,11 +178,11 @@ function initSlideProcedure(slider)
 }
 
 /*
-* Create an object containing sliding methods
-* slider:       main object which containes basic configuration
-* callbacks:    callbacks which should be called after sliding finishes
+* Create an object containing sliding methods.
+* @param  slider       Main object which containes basic configuration.
+* @param  callbacks    Callbacks which should be called after sliding finishes.
 */
-function SliderMain(slider)
+function SliderMain( slider )
 {
     this.slider = slider;
     this.sliderObject = slider.sliderObject;
@@ -183,134 +191,134 @@ function SliderMain(slider)
 }
 
 /* This method should be called if CSS3 is not supported */
-SliderMain.prototype.moveAnimSlide = function(params) {
+SliderMain.prototype.moveAnimSlide = function( params ) {
     var slider = this.slider, sliderObject = this.sliderObject,
         moveObject = params.params.next == "next" ? slider.moveNext : slider.movePrev,
         skipObject = params.skip === "SKIP" ? slider.skipAnim : slider.moveAnim;
 
-    this.updateIndexParams(params);
-    sliderObject.animate(moveObject, moveObject, (function(params, context) {
+    this.updateIndexParams( params );
+    sliderObject.animate( moveObject, moveObject, ( function(params, context) {
         return function() {
-            context.sliderCallback(params);
+            context.sliderCallback( params );
         }
-    })(params, this));
+    })( params, this ));
 }
 
-SliderMain.prototype.moveCssSlide = function(params) {
+SliderMain.prototype.moveCssSlide = function( params ) {
     var slider = this.slider, sliderObject = this.sliderObject,
         moveValue = params.next == "next" ? slider.moveNext : slider.movePrev,
         moveClass = params.skip == "SKIP" ? slider.skipClass : slider.cssClass;
 
-    this.updateIndexParams(params);
+    this.updateIndexParams( params );
     /* Problem: After adding css class, the change
      *          in CSS property (e.g. translateX) would
      *          not triger the animation.
      * Fix: Add a delay in order for addition of css
      *      class to take effect
      */
-    setTimeout(function() {
-        sliderObject.addClass(moveClass);
-        setTimeout(function() {
-            slider.moveConfig[slider.moveConfigProp] = moveValue;
-            sliderObject.css(slider.moveConfig);
+    setTimeout( function() {
+        sliderObject.addClass( moveClass );
+        setTimeout( function() {
+            slider.moveConfig[ slider.moveConfigProp ] = moveValue;
+            sliderObject.css( slider.moveConfig );
         }, 10);
     }, 10);
 }
 
-SliderMain.prototype.sliderCallback = function(event) {
+SliderMain.prototype.sliderCallback = function( event ) {
     var params = event.data || event, context = params.context,
-        slider = context.slider, fn = slider.sliderProcObj[params.skipFunction],
+        slider = context.slider, fn = slider.sliderProcObj[ params.skipFunction ],
         callbacks = params.params.callbacks;
 
-        context.removeSliderClass(params);
+        context.removeSliderClass( params );
         context.setCssToDefault();
         context.reallocateSliderList();
 
-        if (params.skip == "SKIP")
-            fn.call(params.context, params.params);
+        if ( params.skip == "SKIP" )
+            fn.call( params.context, params.params );
         else {
-            callbacks.forEach(function(element, index) {
+            callbacks.forEach( function( element, index ) {
                 /* TODO: popraviti da prepoznaje od kud dolazi callback, da li slider ili freelance */
-                if (element == "autoSlider" && !slider.interval) {
+                if ( element == "autoSlider" && !slider.interval ) {
                     console.log("sliderCallback: Calling autocallback");
-                    var auto = slider[element];
+                    var auto = slider[ element ];
                     auto();
                 } else {
                     /* TODO: staviti druge callback-ove */
                     console.log("sliderCallback: Calling callbacks!");
                 }
             });
-            slider.sliderState.setSliderState("SLIDER_FREE");
+            slider.sliderState.setSliderState( "SLIDER_FREE" );
         }
 }
 
-SliderMain.prototype.removeSliderClass = function(params) {
+SliderMain.prototype.removeSliderClass = function( params ) {
     var slider = this.slider, sliderObject = this.sliderObject,
         moveClass = params.skip == "SKIP" ? slider.skipClass : slider.cssClass;
-    sliderObject.removeClass(moveClass);
+    sliderObject.removeClass( moveClass );
 }
 
 SliderMain.prototype.setCssToDefault = function() {
     var slider = this.slider, sliderObject = this.sliderObject;
 
-    slider.moveConfig[slider.moveConfigProp] = slider.moveConfigDefVal;
-    sliderObject.css(slider.moveConfig);
+    slider.moveConfig[ slider.moveConfigProp ] = slider.moveConfigDefVal;
+    sliderObject.css( slider.moveConfig );
 }
 
 SliderMain.prototype.reallocateSliderList = function() {
     var slider = this.slider, sliderObject = this.sliderObject,
         indexObject = this.indexObject, array, value, listElement;
 
-    array = slider.matrix[indexObject.getIndex()];
-    sliderObject.children().each(function(index) {
-        listElement = $(this);
-        value = array[index] * slider.listIteratorValue;
-        slider.listIterator[slider.listIteratorProp] = value + 'px';
-        listElement.css(slider.listIterator);
+    array = slider.matrix[ indexObject.getIndex() ];
+    sliderObject.children().each( function( index ) {
+        listElement = $( this );
+        value = array[ index ] * slider.listIteratorValue;
+        slider.listIterator[ slider.listIteratorProp ] = value + 'px';
+        listElement.css( slider.listIterator );
     });
 }
 
-SliderMain.prototype.updateIndexParams = function(params) {
+SliderMain.prototype.updateIndexParams = function( params ) {
     var slider = this.slider;
 
     params.offset--;
-    slider.indexObject.updateIndex(params.next);
+    slider.indexObject.updateIndex( params.next );
 }
 
-function FadeSlider(slider) {
-    SliderMain.call(this, slider);
+function FadeSlider( slider ) {
+    SliderMain.call( this, slider );
 
     this.moveCssSlide = function() {
 
     }
 }
 
-FadeSlider.prototype = Object.create(SliderMain.prototype);
+FadeSlider.prototype = Object.create( SliderMain.prototype );
 FadeSlider.prototype.constructor = FadeSlider;
 
 /*
 * Set slider css values and create it
-* slider:    main object which containes basic configuration
+* @param slider    Main object which containes basic configuration.
 */
-function createSliderElement(slider)
+function createSliderElement( slider )
 {
     var sliderObj = slider.sliderObject,
         objChildren = sliderObj.children(),
         permuteObj = {}, value;
-    sliderObj.css(slider.cssConfig.sliderListCss);
-    objChildren.css(slider.cssConfig.sliderListElementCss);
-    objChildren.each(function(index) {
-        permuteObj[slider.listIteratorProp] = slider.matrix[0][index] * slider.listIteratorValue + 'px';
-        $(this).css(permuteObj);
+    sliderObj.css( slider.cssConfig.sliderListCss );
+    objChildren.css( slider.cssConfig.sliderListElementCss );
+    objChildren.each( function( index ) {
+        permuteObj[ slider.listIteratorProp ] = slider.matrix[ 0 ][ index ] * slider.listIteratorValue + 'px';
+        $( this ).css( permuteObj );
     });
 }
 
 /*
-* Initialize slider frame css configuration
-* width:     width of slider container
-* height:    height of slider container
+* Initialize slider frame css configuration.
+* @param  width     Width of slider container.
+* @param  height    Height of slider container.
 */
-function createSliderCss(width, height)
+function createSliderCss( width, height )
 {
     var listCss = {
         display: 'block',
@@ -333,58 +341,58 @@ function createSliderCss(width, height)
 }
 
 /*
-* Create pager control and API
-* slider:    main object which containes basic configuration
+* Create pager control and API.
+* @param  slider    Main object which containes basic configuration.
 */
-function createPager(slider, callbacks)
+function createPager( slider, callbacks )
 {
     var sliderContainer = slider.sliderObject.parent(),
-        pager =  $('<div class="pager_box"></div>'), htmlPager = '',
+        pager =  $( '<div class="pager_box"></div>' ), htmlPager = '',
         i, wraper, pagerLinks;
 
-    sliderContainer.wrap('<div class="wraper"></div>');
+    sliderContainer.wrap( '<div class="wraper"></div>' );
     wraper = sliderContainer.parent();
-    wraper.append(pager);
+    wraper.append( pager );
 
-    for (i = 0; i < slider.sliderObject.children().length; i++) {
+    for ( i = 0; i < slider.sliderObject.children().length; i++ ) {
         htmlPager += '<div class="pager_item"><a href="#" slide_index="'+ i +'"></a></div>'
     }
 
-    pager.append(htmlPager);
-    var slide_index = pager.find('a').first();
-    slide_index.addClass('active');
-    pagerLinks = pager.find('a');
+    pager.append( htmlPager );
+    var slide_index = pager.find( 'a' ).first();
+    slide_index.addClass( 'active' );
+    pagerLinks = pager.find( 'a' );
 
     /* Pager API functions for controling the pager CSS */
-    var updatePager = function(index) {
-        var index = (typeof index != 'undefined') ? index:slider.indexObject.getIndex();
+    var updatePager = function( index ) {
+        var index = ( typeof index != 'undefined' ) ? index:slider.indexObject.getIndex();
 
         console.log("updatePager: index=" + index);
-        pagerLinks.removeClass('active');
-        pagerLinks.each(function() {
-            if (parseInt($(this).attr('slide_index')) == index)
-                $(this).addClass('active');
+        pagerLinks.removeClass( 'active' );
+        pagerLinks.each( function() {
+            if ( parseInt($( this ).attr( 'slide_index' ) ) == index )
+                $( this ).addClass( 'active' );
         });
     },
 
-    handlePagerClick = function(event) {
-        var triggeredElement = $(event.target),
-            clickIndex = parseInt(triggeredElement.attr("slide_index")),
+    handlePagerClick = function( event ) {
+        var triggeredElement = $( event.target ),
+            clickIndex = parseInt( triggeredElement.attr( "slide_index" ) ),
             currentIndex = slider.indexObject.getIndex(), next;
 
-        if (clickIndex == currentIndex)
+        if ( clickIndex == currentIndex )
             return;
-        else if (clickIndex > currentIndex)
+        else if ( clickIndex > currentIndex )
             next = "next";
         else
             next = "prev";
         console.log("handlePagerClick: clickIndex=" + clickIndex);
-        if (slider.sliderState.checkSliderState("SLIDER_FREE")) {
-            updatePager(clickIndex);
-            slider.callMoveFunction(next, clickIndex, callbacks);
+        if ( slider.sliderState.checkSliderState( "SLIDER_FREE" ) ) {
+            updatePager( clickIndex );
+            slider.callMoveFunction( next, clickIndex, callbacks );
         }
     };
-    pager.find('a').on('click', handlePagerClick);
+    pager.find( 'a' ).on( 'click', handlePagerClick );
 
     return {
         updatePager: updatePager
@@ -392,34 +400,35 @@ function createPager(slider, callbacks)
 }
 
 /*
-* Create arrows control and API
-* slider:    main object which containes basic configuration
+* Create arrows control and API.
+* @param  slider    Main object which containes basic configuration.
 */
-function createArrowControl(slider, callbacks)
+function createArrowControl( slider, callbacks )
 {
     var sliderContainer = slider.sliderObject.parent(),
-        next = $('<img src=\"right_arrow.png\" class="right_control"/>'),
-        prev = $('<img src=\"left_arrow.png\" class="left_control"/>');
-    sliderContainer.prepend(next);
-    sliderContainer.prepend(prev);
+        next = $( '<img src=\"right_arrow.png\" class="right_control"/>' ),
+        prev = $( '<img src=\"left_arrow.png\" class="left_control"/>' );
+    sliderContainer.prepend( next );
+    sliderContainer.prepend( prev );
 
     /* Arrow API functions for controling the arrow CSS */
     var hanldeClickNext = function() {
-        if (slider.sliderState.checkSliderState("SLIDER_FREE")) {
-            slider.callMoveFunction("next", -1, callbacks);
+        /* Q&A: Which object actualy holds slider state? */
+        if (slider.sliderState.checkSliderState( "SLIDER_FREE" )) {
+            slider.callMoveFunction( "next", -1, callbacks );
             slider.pager.updatePager();
         }
     },
 
     handleClickPrev = function() {
-        if (slider.sliderState.checkSliderState("SLIDER_FREE")) {
-            slider.callMoveFunction("prev", -1, callbacks);
+        if (slider.sliderState.checkSliderState( "SLIDER_FREE" )) {
+            slider.callMoveFunction( "prev", -1, callbacks );
             slider.pager.updatePager();
         }
     };
 
-    next.on("click", hanldeClickNext);
-    prev.on("click", handleClickPrev);
+    next.on( "click", hanldeClickNext );
+    prev.on( "click", handleClickPrev );
 }
 
 /*
@@ -431,11 +440,11 @@ function initSliderState()
 {
     var busy = "SLIDER_FREE",
 
-    setSliderState = function(param) {
+    setSliderState = function( param ) {
         busy = param;
     },
 
-    checkSliderState = function(state) {
+    checkSliderState = function( state ) {
         return busy == state;
     };
 
@@ -446,10 +455,10 @@ function initSliderState()
 }
 
 /*
-* Create moving rules and configuration for vertical slider
-* slider:    main object which containes basic configuration
+* Create moving rules and configuration for vertical slider.
+* @param  slider    Main object which containes basic configuration.
 */
-function createVertical(slider)
+function createVertical( slider )
 {
     slider.listIteratorValue = slider.height;
     slider.listIteratorProp = 'top';
@@ -461,9 +470,9 @@ function createVertical(slider)
 
 /*
 * Create moving rules and configuration for horizontal slider
-* slider:    main object which containes basic configuration
+* @param  slider    Main object which containes basic configuration.
 */
-function createHorizontal(slider)
+function createHorizontal( slider )
 {
     slider.listIteratorValue = slider.width;
     slider.listIteratorProp = 'left';
@@ -475,11 +484,11 @@ function createHorizontal(slider)
 
 /*
 * Create the corresponding slider based on the option value
-* slider:    main object which containes basic configuration
+* @param  slider    Main object which containes basic configuration.
 */
-function createSlider(slider)
+function createSlider( slider )
 {
-    if (slider.option == "vertical")
+    if ( slider.option == "vertical" )
         createVertical(slider);
     else
         createHorizontal(slider);
@@ -500,7 +509,7 @@ var defaultParams = {
 
 $.fn.easySlider = function(options) {
     var slider ={};
-    slider = $.extend({}, defaultParams, options);
+    slider = $.extend( {}, defaultParams, options );
     slider.sliderObject = this;
     var lazyParams = {
         lazyAnimProp: {
@@ -511,46 +520,46 @@ $.fn.easySlider = function(options) {
     };
 
     /* Check if we're on a modern browser or a dinosaur */
-    slider.useCssThree = (function(slider){
-        var div = document.createElement('div'), i, cssPrefix, animProp,
-            props = ['WebkitPerspective',
-                     'MozPerspective',
-                     'OPerspective',
-                     'msPerspective'];
-        for (i in props) {
-            if (div.style[props[i]] !== undefined) {
-                slider.cssPrefix = '-' + props[i].replace('Perspective', '').toLowerCase();
+    slider.useCssThree = ( function( slider ){
+        var div = document.createElement( 'div' ), i, cssPrefix, animProp,
+            props = [ 'WebkitPerspective',
+                      'MozPerspective',
+                      'OPerspective',
+                      'msPerspective' ];
+        for ( i in props ) {
+            if ( div.style[ props[ i ] ] !== undefined ) {
+                slider.cssPrefix = '-' + props[i].replace( 'Perspective', '' ).toLowerCase();
                 return true;
             }
         }
         return false;
-    })(slider);
+    })( slider );
 
     console.log("ready: useCssThree=" + slider.useCssThree);
 
-    var defaultCallbacks = ["autoSlider"];
+    var defaultCallbacks = [ "autoSlider" ];
     /* Get slider moving configuration */
     slider.listIterator = {};
     slider.moveConfig = {};
-    createSlider(slider);
+    createSlider( slider );
     
      /* Create slider controls */
-    slider.pager = createPager(slider, defaultCallbacks);
-    slider.arrows = createArrowControl(slider, []);
+    slider.pager = createPager( slider, defaultCallbacks );
+    slider.arrows = createArrowControl( slider, [] );
 
     /* Create slider html and css */
-    slider.cssConfig = createSliderCss(slider.width, slider.height);
-    slider.matrix = initMatrix(slider.sliderObject.children().length);
-    createSliderElement(slider);
+    slider.cssConfig = createSliderCss( slider.width, slider.height );
+    slider.matrix = initMatrix( slider.sliderObject.children().length );
+    createSliderElement( slider );
     slider.transEvent = 'transitionend';
 
-    initLazyLoading(slider.sliderObject, slider.lazyElement, lazyParams);
+    initLazyLoading( slider.sliderObject, slider.lazyElement, lazyParams );
 
     /* Initialize basic slider functions and properties */
-    slider.sliderProcObj = initSlideProcedure(slider);
+    slider.sliderProcObj = initSlideProcedure( slider );
     slider.sliderState = initSliderState();
-    slider.indexObject = initIndexObject(slider.sliderObject.children().length);
-    var moveFunctionConfig = new SliderMain(slider);
+    slider.indexObject = initIndexObject( slider.sliderObject.children().length );
+    var moveFunctionConfig = new SliderMain( slider );
 
     slider.autoSlider = function() {
         var moveConfig = {
@@ -558,44 +567,44 @@ $.fn.easySlider = function(options) {
             callbacks: [],
             offset: null
         }
-        slider.interval = setInterval(function() {
+        slider.interval = setInterval( function() {
             /* Maybe add setting of state to move functions */
-            slider.sliderState.setSliderState("SLIDER_BUSY");
-            slider.sliderProcObj.slideProcedure.call(moveFunctionConfig, moveConfig);
-        }, 5000);
-        slider.pagerInterval = setInterval(function() {
+            slider.sliderState.setSliderState( "SLIDER_BUSY" );
+            slider.sliderProcObj.slideProcedure.call( moveFunctionConfig, moveConfig );
+        }, 5000 );
+        slider.pagerInterval = setInterval( function() {
             slider.pager.updatePager();
-        }, 5000);
+        }, 5000 );
     }
 
-    slider.callMoveFunction = function(next, index, callbacks) {
+    slider.callMoveFunction = function( next, index, callbacks ) {
         var moveParams = {}, offset;
 
         moveParams.next = next;
         moveParams.callbacks = callbacks;
-        slider.sliderState.setSliderState("SLIDER_BUSY");
-        clearInterval(slider.interval);
-        clearInterval(slider.pagerInterval);
+        slider.sliderState.setSliderState( "SLIDER_BUSY" );
+        clearInterval( slider.interval );
+        clearInterval( slider.pagerInterval );
         slider.interval = 0;
 
-        offset = slider.indexObject.getOffset(index);
-        if (offset > 1)
+        offset = slider.indexObject.getOffset( index );
+        if ( offset > 1 )
             moveParams.offset = offset;
-        slider.sliderProcObj.slideProcedure.call(moveFunctionConfig, moveParams);
+        slider.sliderProcObj.slideProcedure.call( moveFunctionConfig, moveParams );
     }
 
-    slider.sliderObject.parent().on("mouseenter", function(){
-        console.log("mouseenter");
-        clearInterval(slider.interval);
-        clearInterval(slider.pagerInterval);
+    slider.sliderObject.parent().on( "mouseenter", function() {
+        console.log( "mouseenter" );
+        clearInterval( slider.interval );
+        clearInterval( slider.pagerInterval );
         slider.interval = 0;
-    });
-    slider.sliderObject.parent().on("mouseleave", function(){
+    } );
+    slider.sliderObject.parent().on( "mouseleave", function() {
         console.log("mouseleave");
         slider.autoSlider();
-    });
+    } );
 
     slider.autoSlider();
 }
-})(jQuery);
+} )( jQuery );
 
