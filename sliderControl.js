@@ -27,14 +27,12 @@ var IndexObject = {
 
     incrementIndex: function() {
         this.settings.index++;
-        console.log("incrementIndex: Increment:" + this.settings.index);
         if ( this.settings.index > this.settings.indexLength )
             this.settings.index = 0;
     },
 
     decrementIndex: function() {
         this.settings.index--;
-        console.log("decrementIndex:" + this.settings.index);
         if (this.settings.index < 0)
             this.settings.index = this.settings.indexLength;
     },

@@ -79,14 +79,12 @@ var SliderElement = {
 
     onMouseEnterEvent: function( control ) {
         this.jQObject.on( "mouseenter", function() {
-            console.log("Called enter");
             //control.stopSlider();
         } );
     },
 
     onMouseLeaveEvent: function( control ) {
         this.jQObject.on( "mouseleave", function() {
-            console.log("Called leave");
             //control.startSlider();
         } );
     }
@@ -132,7 +130,6 @@ var PagerElement = {
     },
 
     render: function( index ) {
-        console.log("updatePager: index=" + index);
         this.pagerLinks.removeClass( 'active' );
         this.pagerLinks.each(function() {
             if (parseInt($(this).attr( 'slide_index' )) == index)
@@ -157,7 +154,6 @@ var PagerElement = {
             direction = "prev";
         this.render( clickIndex );
         Control.startSlider( direction, ControlMode.MOVE_WITH_INDEX, clickIndex );
-        console.log( "Clicked element:" + clickIndex );
     }
 };
 

@@ -70,7 +70,6 @@ SliderMain.prototype.slideWithjQuery = function( moveParams ) {
 SliderMain.prototype.moveCallback = function( event ) {
 	var params = event.data || event;
 
-    console.log( "Called " + this.moveAnim );
 	this.removeCssClass( this.cssClass );
 	this.setDefaultCss();
 	this.updateElementOrder();
