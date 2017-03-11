@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <script src="C:\Users\pord911\Documents\Programs\jquery-3.1.1.js"></script>
-    <script src="flexible.js"></script>
+    <!-- <script src="http://code.jquery.com/jquery-latest.js"></script> -->
+    <script src="sliderView.js"></script>
+    <script src="sliderControl.js"></script>
+    <script src="sliderMovement.js"></script>
+    <script src="easyslider.js"></script>
     <link href="transition.css" rel="stylesheet" />
     <style>
         html, body, div, span, applet, object, iframe,
@@ -32,7 +36,10 @@
     </style>
     <script>
      $(document).ready(function() {
-        $('.transitionobj').easySlider();
+        $('.transitionobj').easySlider({
+                                      auto: true,
+                                      interval: 4000
+                                    });
      });
     </script>
     
