@@ -74,20 +74,19 @@ var Control = {
 
     settings: {
         moveParams: {
-            next: "next",
-            context: undefined
+            next: "next"
         },
-        offset: 0,
         autoMode: false,
+        renderList: null,
+        offset: 0,
         interval: 0,
         intervalSet: 0,
         state: "SLIDER_FREE",
         autoState: "STOPPED"
     },
 
-    init: function( sliderObject, autoMode, interval ) {
-        this.sliderObject = sliderObject;
-        this.settings.moveParams.context = sliderObject;
+    init: function( renderList, autoMode, interval ) {
+        this.settings.renderList = renderList;
         this.settings.autoMode = autoMode;
         this.settings.interval = interval;
         if ( this.settings.autoMode )
@@ -106,12 +105,13 @@ var Control = {
         IndexObject.updateIndex( s.moveParams.next );
         s.state = "SLIDER_BUSY";
         /* Allow some time for the sliding to take affect. */
-        setTimeout((function( context, moveParams ) {
+        setTimeout((function( renderList ) {
             return function() {
-                context.sliderObject.slide( moveParams );
-                PagerElement.render( IndexObject.getIndex() );
+                renderList.forEach(function( renderElement ) {
+                    renderElement.render();
+                });
             }
-        })( this, s.moveParams ), 10);
+        })( s.renderList ), 10);
     },
 
     startSlider: function( direction, moveDesicion, index ) {
@@ -157,5 +157,9 @@ var Control = {
             clearInterval( s.intervalSet );
             s.autoState = "STOPPED";
         }
+    },
+
+    getMoveParams: function() {
+        return this.settings.moveParams;
     }
 };

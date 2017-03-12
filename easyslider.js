@@ -28,7 +28,17 @@
 		    sliderObject;
 		slider = $.extend( {}, defaultParams, options );
 		slider.matrix = initMatrix( this.children().length );
-		SliderElement.init( this, slider );
+		sliderConfig = {
+			option: slider.option,
+			width: slider.width,
+			height: slider.height,
+			skipAnim: slider.skipAnim,
+			moveAnim: slider.moveAnim,
+			useCssThree: false,
+			callbackList: []
+		};
+		sliderObject = new SliderMain( this, sliderConfig );
+		SliderElement.init( this, sliderObject, slider );
 		SliderElement.onMouseEnterEvent();
 		SliderElement.onMouseLeaveEvent();
 
@@ -44,19 +54,11 @@
 		ArrowElement.init( this, arrowConfig );
 		ArrowElement.onRightClick();
 		ArrowElement.onLeftClick();
-		sliderConfig = {
-			sliderType: slider.option,
-			width: slider.width,
-			height: slider.height,
-			skipAnim: slider.skipAnim,
-			moveAnim: slider.moveAnim,
-			useCssThree: false,
-			callbackList: []
-		},
-		sliderObject = new SliderMain( this, sliderConfig );
+
 		var c = this.children();
 		// TODO: this.children().length does not work for some reason
 		IndexObject.init( c.length );
-		Control.init( sliderObject, slider.auto, slider.interval );
+		var renderList = [ SliderElement, PagerElement ];
+		Control.init( renderList, slider.auto, slider.interval );
 	}
 } )( jQuery );

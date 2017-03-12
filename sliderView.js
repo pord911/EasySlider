@@ -37,27 +37,32 @@ var SliderElement = {
         },
         elementCss: {
             position: 'absolute'
-        }
+        },
+        slideObject: null
     },
 
-    setElementCss: function( sliderType, config ) {
-        if ( sliderType == "horizontal" ) {
-            this.position = 'left';
-            this.value = config.width;
-        }
-    },
-
-    init: function( jQObject, config ) {
+    init: function( jQObject, slideObject, config ) {
         var s = this.settings;
 
         s.elementListCss.width = config.width + 'px';
         s.elementListCss.height = config.height + 'px';
         s.elementCss.width = config.width + 'px';
         s.elementCss.height = config.height + 'px';
+        s.slideObject = slideObject;
         this.jQObject = jQObject;
         this.matrix = config.matrix;
-        this.setElementCss( config.option, config );
+        this.setElementCss( config );
         this.createSlider();
+    },
+
+    setElementCss: function( config ) {
+        if ( config.option == "horizontal" ) {
+            this.position = 'left';
+            this.value = config.width;
+        } else if ( config.option == "vertical" ) {
+            this.position = 'top';
+            this.value = config.height;
+        }
     },
 
     createSlider: function() {
@@ -71,6 +76,11 @@ var SliderElement = {
             elementCssObject[ context.position ] = context.matrix[ 0 ][ index ] * context.value + 'px';
             $( this ).css( elementCssObject );
         } );
+    },
+
+    render: function() {
+        var s = this.settings;
+        s.slideObject.slide( Control.getMoveParams() );
     },
 
     getArrayFromMatrix: function( index ) {
@@ -129,10 +139,10 @@ var PagerElement = {
         this.pagerLinks = this.pager.find( 'a' );
     },
 
-    render: function( index ) {
+    render: function() {
         this.pagerLinks.removeClass( 'active' );
         this.pagerLinks.each(function() {
-            if (parseInt($(this).attr( 'slide_index' )) == index)
+            if (parseInt($(this).attr( 'slide_index' )) == IndexObject.getIndex())
                 $(this).addClass( 'active' );
         });
     },

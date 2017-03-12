@@ -32,8 +32,8 @@ function getHorizontal( config ) {
 * Create the corresponding slider based on the option value
 * slider:    main object which containes basic configuration
 */
-function getSlider( sliderType, config ) {
-    if ( sliderType == "vertical" )
+function getSlider( config ) {
+    if ( config.option == "vertical" )
         return getVertical( config );
     else
         return getHorizontal( config );
@@ -41,7 +41,7 @@ function getSlider( sliderType, config ) {
 
 function SliderMain( jQObject, config ) {
 	this.jQObject = jQObject;
-	this.elCssMoveConfig = getSlider( config.sliderType, config );
+	this.elCssMoveConfig = getSlider( config );
 	this.skipAnim = config.skipAnim;
 	this.moveAnim = config.moveAnim;
 	this.callbackList = config.callbackList;
