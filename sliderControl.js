@@ -2,7 +2,8 @@ var SCONTROL = (function() {
     var ControlMode = {
         AUTO: 1,
         MOVE: 2,
-        MOVE_WITH_INDEX: 3
+        MOVE_WITH_INDEX: 3,
+        STOP: 4
     },
 
     CallbackRes = {
@@ -132,10 +133,12 @@ var SCONTROL = (function() {
                         }
                     })( Control ), s.interval);
                 s.autoState = "STARTED";
-            } else {
+            } else if ( moveDesicion == ControlMode.MOVE_CLICK ) {
                 s.offset = 0;
                 Control.stopSlider();
                 Control.moveSlide( direction );
+            } else {
+                Control.stopSlider();
             }
         },
 

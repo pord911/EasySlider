@@ -87,15 +87,15 @@ var SliderElement = {
         return this.matrix[ index ];
     },
 
-    onMouseEnterEvent: function( control ) {
-        this.jQObject.on( "mouseenter", function() {
-            //control.stopSlider();
-        } );
+    onMouseEnterEvent: function() {
+        this.jQObject.on("mouseenter", function() {
+            SCONTROL.startSlider( "", SCONTROL.ControlMode.STOP );
+        });
     },
 
     onMouseLeaveEvent: function( control ) {
         this.jQObject.on( "mouseleave", function() {
-            //control.startSlider();
+            SCONTROL.startSlider( "next", SCONTROL.ControlMode.AUTO );
         } );
     }
 };
@@ -186,13 +186,13 @@ var ArrowElement = {
 
     onRightClick: function() {
         this.settings.next.on( "click", function() {
-            SCONTROL.startSlider( "next", SCONTROL.ControlMode.MOVE );
+            SCONTROL.startSlider( "next", SCONTROL.ControlMode.MOVE_CLICK );
         } );
     },
 
     onLeftClick: function() {
         this.settings.prev.on( "click", function() {
-            SCONTROL.startSlider( "prev", SCONTROL.ControlMode.MOVE );
+            SCONTROL.startSlider( "prev", SCONTROL.ControlMode.MOVE_CLICK );
         } );
     }
 };
