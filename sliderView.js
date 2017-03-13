@@ -80,7 +80,7 @@ var SliderElement = {
 
     render: function() {
         var s = this.settings;
-        s.slideObject.slide( Control.getMoveParams() );
+        s.slideObject.slide( SCONTROL.getMoveParams() );
     },
 
     getArrayFromMatrix: function( index ) {
@@ -142,7 +142,7 @@ var PagerElement = {
     render: function() {
         this.pagerLinks.removeClass( 'active' );
         this.pagerLinks.each(function() {
-            if (parseInt($(this).attr( 'slide_index' )) == IndexObject.getIndex())
+            if (parseInt($(this).attr( 'slide_index' )) == SCONTROL.getIndex())
                 $(this).addClass( 'active' );
         });
     },
@@ -158,12 +158,12 @@ var PagerElement = {
     pagerClicked: function( event ) {
         var triggeredElement = $( event.target ), direction,
             clickIndex = parseInt( triggeredElement.attr( "slide_index" ) );
-        if ( clickIndex > IndexObject.getIndex() )
+        if ( clickIndex > SCONTROL.getIndex() )
             direction = "next";
         else
             direction = "prev";
         this.render( clickIndex );
-        Control.startSlider( direction, ControlMode.MOVE_WITH_INDEX, clickIndex );
+        SCONTROL.startSlider( direction, SCONTROL.ControlMode.MOVE_WITH_INDEX, clickIndex );
     }
 };
 
@@ -186,13 +186,13 @@ var ArrowElement = {
 
     onRightClick: function() {
         this.settings.next.on( "click", function() {
-            Control.startSlider( "next", ControlMode.MOVE );
+            SCONTROL.startSlider( "next", SCONTROL.ControlMode.MOVE );
         } );
     },
 
     onLeftClick: function() {
         this.settings.prev.on( "click", function() {
-            Control.startSlider( "prev", ControlMode.MOVE );
+            SCONTROL.startSlider( "prev", SCONTROL.ControlMode.MOVE );
         } );
     }
 };

@@ -57,8 +57,10 @@
 
 		var c = this.children();
 		// TODO: this.children().length does not work for some reason
-		IndexObject.init( c.length );
-		var renderList = [ SliderElement, PagerElement ];
-		Control.init( renderList, slider.auto, slider.interval );
+		SCONTROL.init( { length: c.length,
+			             autoMode: slider.auto,
+		                 renderList: [ SliderElement, PagerElement ],
+		                 interval: slider.interval
+		               } );
 	}
 } )( jQuery );

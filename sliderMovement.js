@@ -58,7 +58,7 @@ function SliderMain( jQObject, config ) {
 SliderMain.prototype.slideWithjQuery = function( moveParams ) {
     var moveObject = moveParams.next == "next" ? this.elCssMoveConfig.elMoveNext :
                                                  this.elCssMoveConfig.elMovePrev,
-        skipObject = MoveState.checkMoveState( "SLIDER_SKIP" ) ? this.skipAnim : this.moveAnim;
+        skipObject = SCONTROL.checkMoveState( "SLIDER_SKIP" ) ? this.skipAnim : this.moveAnim;
 
     this.jQObject.animate(moveObject, skipObject, (function(params, context) {
         return function() {
@@ -74,13 +74,13 @@ SliderMain.prototype.moveCallback = function( event ) {
 	this.setDefaultCss();
 	this.updateElementOrder();
 
-	if ( MoveState.checkMoveState( "SLIDER_SKIP" ) )
-		Control.notify( CallbackRes.MOVE , params.next );
+	if ( SCONTROL.checkMoveState( "SLIDER_SKIP" ) )
+		SCONTROL.notify( SCONTROL.CallbackRes.MOVE , params.next );
 	else {
 		this.callbackList.forEach( function( callback, index ) {
 			callback();
 		});
-		Control.notify( CallbackRes.CALLBACK_FINISHED );
+		SCONTROL.notify( SCONTROL.CallbackRes.CALLBACK_FINISHED );
 	}
 }
 
@@ -99,7 +99,7 @@ SliderMain.prototype.removeCssClass = function( cssClass ) {
 SliderMain.prototype.updateElementOrder = function() {
 	var array, cssValue = this.elCssMoveConfig.elCssValue,
 	    cssProperty = this.elCssMoveConfig.elCssProperty, cssObject = {};
-	array = SliderElement.getArrayFromMatrix( IndexObject.getIndex() );
+	array = SliderElement.getArrayFromMatrix( SCONTROL.getIndex() );
 	/* We have to call children here since it's
 	 * updated every time a slide is made.
 	 */
