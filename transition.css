@@ -1,7 +1,5 @@
 .container {
     display: block;
-    width: 400px;
-    height: 200px;
     margin: 10px auto;
     border: 1px solid black;
     position: relative;

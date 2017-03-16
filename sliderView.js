@@ -41,27 +41,38 @@ var SliderElement = {
         slideObject: null
     },
 
+    setContainer: function( width, height, containerClass ) {
+        var c = containerClass,
+        dimension = {
+            width: width,
+            height: height
+        };
+        this.jQObject.wrap("<div class='" + c + "''></div>");
+        this.jQObject.parent().css( dimension );
+    },
+
     init: function( jQObject, slideObject, config ) {
         var s = this.settings;
 
-        s.elementListCss.width = config.width + 'px';
-        s.elementListCss.height = config.height + 'px';
-        s.elementCss.width = config.width + 'px';
-        s.elementCss.height = config.height + 'px';
+        s.elementListCss.width = config.widthStr;
+        s.elementListCss.height = config.heightStr;
+        s.elementCss.width = config.widthStr;
+        s.elementCss.height = config.heightStr;
         s.slideObject = slideObject;
         this.jQObject = jQObject;
         this.matrix = config.matrix;
-        this.setElementCss( config );
+        this.setContainer( config.widthStr, config.heightStr, config.sliderElementContainer );
+        this.setElementCss( config.option, config.width, config.height );
         this.createSlider();
     },
 
-    setElementCss: function( config ) {
-        if ( config.option == "horizontal" ) {
+    setElementCss: function( option, width, height ) {
+        if ( option == "horizontal" ) {
             this.position = 'left';
-            this.value = config.width;
-        } else if ( config.option == "vertical" ) {
+            this.value = width;
+        } else if ( option == "vertical" ) {
             this.position = 'top';
-            this.value = config.height;
+            this.value = height;
         }
     },
 
@@ -73,7 +84,7 @@ var SliderElement = {
         this.jQObject.css( s.elementListCss );
         children.css( s.elementCss );
         children.each( function( index ) {
-            elementCssObject[ context.position ] = context.matrix[ 0 ][ index ] * context.value + 'px';
+            elementCssObject[ context.position ] = context.matrix[ 0 ][ index ] * context.value;
             $( this ).css( elementCssObject );
         } );
     },
@@ -174,8 +185,8 @@ var ArrowElement = {
 
     init: function( jQObject, config ) {
         this.jQObject = jQObject.parent();
-        this.settings.next = $( '<img src="' + config.rightImage +  '" class="' + config.rightClass + '"/>'  );
-        this.settings.prev = $( '<img src="' + config.leftImage +  '" class="' + config.leftClass + '"/>'  );
+        this.settings.next = $( '<img src="' + config.rightArrowImage +  '" class="' + config.righwArrowClass + '"/>'  );
+        this.settings.prev = $( '<img src="' + config.leftArrowImage +  '" class="' + config.leftArrowClass + '"/>'  );
         this.createArrow();
     },
 
