@@ -8,8 +8,8 @@ function getVertical( config ) {
     	elCssProperty: 'top',
     	elCssMoveProp: config.useCssThree ? config.cssPrefix + '-transform':'top',
         elCssDefaultMove: config.useCssThree ? 'translateY(0' + config.measure + ')':'0' + config.measure,
-        elMoveNext: config.useCssThree ? 'translateY(-' + config.height + ')':{top:'-' + config.height},
-        elMovePrev: config.useCssThree ? 'translateY(' + config.height + ')':{top:config.height}
+        elMoveNext: config.useCssThree ? 'translateY(-' + config.height + ')':{ top:'-' + config.height },
+        elMovePrev: config.useCssThree ? 'translateY(' + config.height + ')':{ top:config.height }
     }
 }
 
@@ -21,10 +21,10 @@ function getHorizontal( config ) {
 	return {
     	elCssValue: config.width,
     	elCssProperty: 'left',
-    	elCssMoveProp: config.useCssThree ? config.cssPrefix + '-transform':'left',
-        elCssDefaultMove: config.useCssThree ? 'translateX(0' + config.measure + ')':'0' + config.measure,
-        elMoveNext: config.useCssThree ? 'translateX(-' + config.width + ')':{ left:'-' + config.width },
-        elMovePrev: config.useCssThree ? 'translateX(' + config.width + ')':{ left:config.width }
+        elCssMoveProp: config.useCssThree ? config.cssPrefix + '-transform' : 'left',
+        elCssDefaultMove: config.useCssThree ? 'translateX(0' + config.measure + ')' : '0' + config.measure,
+        elMoveNext: config.useCssThree ? 'translateX(-' + config.width + ')' : { left:'-' + config.width },
+        elMovePrev: config.useCssThree ? 'translateX(' + config.width + ')' : { left:config.width }
     }
 }
 

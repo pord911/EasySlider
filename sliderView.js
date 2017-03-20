@@ -41,16 +41,6 @@ var SliderElement = {
         slideObject: null
     },
 
-    setContainer: function( width, height, containerClass ) {
-        var c = containerClass,
-        dimension = {
-            width: width,
-            height: height
-        };
-        this.jQObject.wrap("<div class='" + c + "''></div>");
-        this.jQObject.parent().css( dimension );
-    },
-
     init: function( jQObject, slideObject, config ) {
         var s = this.settings;
 
@@ -60,10 +50,20 @@ var SliderElement = {
         s.elementCss.height = config.heightStr;
         s.slideObject = slideObject;
         this.jQObject = jQObject;
-        this.matrix = config.matrix;
+        this.matrix = initMatrix( config.elListLength );
         this.setContainer( config.widthStr, config.heightStr, config.sliderElementContainer );
         this.setElementCss( config.option, config.width, config.height );
         this.createSlider();
+    },
+
+    setContainer: function( width, height, containerClass ) {
+        var c = containerClass,
+        dimension = {
+            width: width,
+            height: height
+        };
+        this.jQObject.wrap("<div class='" + c + "''></div>");
+        this.jQObject.parent().css( dimension );
     },
 
     setElementCss: function( option, width, height ) {
@@ -105,9 +105,9 @@ var SliderElement = {
     },
 
     onMouseLeaveEvent: function( control ) {
-        this.jQObject.on( "mouseleave", function() {
+        this.jQObject.on("mouseleave", function() {
             SCONTROL.startSlider( "next", SCONTROL.ControlMode.AUTO );
-        } );
+        });
     }
 };
 

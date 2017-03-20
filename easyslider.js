@@ -25,30 +25,30 @@
 
 	$.fn.easySlider = function( options ) {
 		var slider = {};
+
 		slider = $.extend( {}, defaultParams, options );
-		slider.matrix = initMatrix( this.children().length );
-		slider.widthStr = this.css("width");
-		slider.heightStr = this.css("height");
+		slider.widthStr = this.css( "width" );
+		slider.heightStr = this.css( "height" );
 		slider.width = this.width();
 		slider.height = this.height();
 		slider.measure = slider.widthStr.match( /[^[0-9]+/i );
 		slider.useCssThree = false;
 		slider.callbackList = [];
+		slider.elListLength = this.children().length;
 
 		SliderElement.init( this, new SliderMain( this, slider ), slider );
 		SliderElement.onMouseEnterEvent();
 		SliderElement.onMouseLeaveEvent();
 
-		PagerElement.init( this, this.children().length );
+		PagerElement.init( this, slider.elListLength );
 		PagerElement.onPagerClick();
 
 		ArrowElement.init( this, slider );
 		ArrowElement.onRightClick();
 		ArrowElement.onLeftClick();
 
-		var c = this.children();
 		// TODO: this.children().length does not work for some reason
-		SCONTROL.init( { length: c.length,
+		SCONTROL.init( { length: slider.elListLength,
 			             autoMode: slider.auto,
 		                 renderList: [ SliderElement, PagerElement ],
 		                 interval: slider.interval
