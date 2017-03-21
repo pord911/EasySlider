@@ -1,47 +1,53 @@
-/*
- * Create moving rules and configuration for vertical slider
- * slider:    main object which containes basic configuration
- */
-function getVertical( config ) {
-	return {
-    	elCssValue: config.height,
-    	elCssProperty: 'top',
-    	elCssMoveProp: config.useCssThree ? config.cssPrefix + '-transform':'top',
-        elCssDefaultMove: config.useCssThree ? 'translateY(0' + config.measure + ')':'0' + config.measure,
-        elMoveNext: config.useCssThree ? 'translateY(-' + config.height + ')':{ top:'-' + config.height },
-        elMovePrev: config.useCssThree ? 'translateY(' + config.height + ')':{ top:config.height }
-    }
-}
+var MOVECONFIG = (function() {
+	/*
+     * Create moving rules and configuration for vertical slider
+     * slider:    main object which containes basic configuration
+     */
+	var getVertical = function( config ) {
+	    return {
+            elCssValue: config.height,
+            elCssProperty: 'top',
+            elCssMoveProp: config.useCssThree ? config.cssPrefix + '-transform':'top',
+            elCssDefaultMove: config.useCssThree ? 'translateY(0' + config.measure + ')':'0' + config.measure,
+            elMoveNext: config.useCssThree ? 'translateY(-' + config.height + ')':{ top:'-' + config.height },
+            elMovePrev: config.useCssThree ? 'translateY(' + config.height + ')':{ top:config.height }
+        }
+    },
 
-/*
- * Create moving rules and configuration for horizontal slider
- * slider:    main object which containes basic configuration
- */
-function getHorizontal( config ) {
-	return {
-    	elCssValue: config.width,
-    	elCssProperty: 'left',
-        elCssMoveProp: config.useCssThree ? config.cssPrefix + '-transform' : 'left',
-        elCssDefaultMove: config.useCssThree ? 'translateX(0' + config.measure + ')' : '0' + config.measure,
-        elMoveNext: config.useCssThree ? 'translateX(-' + config.width + ')' : { left:'-' + config.width },
-        elMovePrev: config.useCssThree ? 'translateX(' + config.width + ')' : { left:config.width }
-    }
-}
+   /*
+    * Create moving rules and configuration for horizontal slider
+    * slider:    main object which containes basic configuration
+    */
+	getHorizontal = function( config ) {
+        return {
+            elCssValue: config.width,
+            elCssProperty: 'left',
+            elCssMoveProp: config.useCssThree ? config.cssPrefix + '-transform' : 'left',
+            elCssDefaultMove: config.useCssThree ? 'translateX(0' + config.measure + ')' : '0' + config.measure,
+            elMoveNext: config.useCssThree ? 'translateX(-' + config.width + ')' : { left:'-' + config.width },
+            elMovePrev: config.useCssThree ? 'translateX(' + config.width + ')' : { left:config.width }
+        }
+	},
 
-/*
-* Create the corresponding slider based on the option value
-* slider:    main object which containes basic configuration
-*/
-function getSlider( config ) {
-    if ( config.option == "vertical" )
-        return getVertical( config );
-    else
-        return getHorizontal( config );
-}
+   /*
+    * Create the corresponding slider based on the option value
+    * slider:    main object which containes basic configuration
+    */
+	getMoveConfig = function( config ) {
+        if ( config.option == "vertical" )
+            return getVertical( config );
+        else
+            return getHorizontal( config );
+	};
+
+	return {
+		getMoveConfig: getMoveConfig
+	};
+})();
 
 function SliderMain( jQObject, config ) {
 	this.jQObject = jQObject;
-	this.elCssMoveConfig = getSlider( config );
+	this.elCssMoveConfig = MOVECONFIG.getMoveConfig( config );
 	this.skipAnim = config.skipAnim;
 	this.moveAnim = config.moveAnim;
 	this.callbackList = config.callbackList;

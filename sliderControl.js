@@ -126,13 +126,15 @@ var SCONTROL = (function() {
                 Control.stopSlider();
                 Control.moveSlide( direction );
             } else if ( moveDesicion == ControlMode.AUTO ) {
+                if ( s.autoState == "STARTED" )
+                    return;
+                s.autoState = "STARTED";
                 s.intervalSet =
                     setInterval((function( context ) {
                         return function() {
                             context.moveSlide( "next" );
                         }
                     })( Control ), s.interval);
-                s.autoState = "STARTED";
             } else if ( moveDesicion == ControlMode.MOVE_CLICK ) {
                 s.offset = 0;
                 Control.stopSlider();
@@ -146,11 +148,14 @@ var SCONTROL = (function() {
             var s = Control.settings;
             if ( message == CallbackRes.CALLBACK_FINISHED ) {
                 s.state = "SLIDER_FREE";
+                /* TODO: Auto mode should not be started
+                   here if it was a mouse click, since mosue hover/enter
+                   is still active.
+                 */
                 if ( s.autoState == "STOPPED" && s.autoMode )
                     Control.startSlider( "next", ControlMode.AUTO );
-            }
-            else if ( message == CallbackRes.MOVE )
-                Control.moveSlide( args );
+            } else if ( message == CallbackRes.MOVE )
+                  Control.moveSlide( args );
         },
 
         stopSlider: function() {
