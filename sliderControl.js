@@ -3,7 +3,9 @@ var SCONTROL = (function() {
         AUTO: 1,
         MOVE: 2,
         MOVE_WITH_INDEX: 3,
-        STOP: 4
+        STOP: 4,
+        MOUSE_ENTER: 5,
+        MOUSE_LEAVE: 6
     },
 
     CallbackRes = {
@@ -82,7 +84,8 @@ var SCONTROL = (function() {
             interval: 0,
             intervalSet: 0,
             state: "SLIDER_FREE",
-            autoState: "STOPPED"
+            autoState: "STOPPED",
+            hoverState: "MOUSE_LEAVE"
         },
 
         init: function( renderList, autoMode, interval ) {
@@ -114,6 +117,9 @@ var SCONTROL = (function() {
             })( s.renderList ), 10);
         },
 
+        /* TODO: Investigate the addition of adding a state control object.
+           Right now there are too many states.
+         */
         startSlider: function( direction, moveDesicion, index ) {
             var s = Control.settings;
             if ( s.state == "SLIDER_BUSY")
@@ -139,8 +145,12 @@ var SCONTROL = (function() {
                 s.offset = 0;
                 Control.stopSlider();
                 Control.moveSlide( direction );
-            } else {
+            } else if ( moveDesicion == ControlMode.MOUSE_ENTER ) {
+                s.hoverState = "MOUSE_ENTER";
                 Control.stopSlider();
+            } else if ( moveDesicion == ControlMode.MOUSE_LEAVE ) {
+                s.hoverState = "MOUSE_LEAVE";
+                Control.startSlider( "next", ControlMode.AUTO );
             }
         },
 
@@ -148,11 +158,7 @@ var SCONTROL = (function() {
             var s = Control.settings;
             if ( message == CallbackRes.CALLBACK_FINISHED ) {
                 s.state = "SLIDER_FREE";
-                /* TODO: Auto mode should not be started
-                   here if it was a mouse click, since mosue hover/enter
-                   is still active.
-                 */
-                if ( s.autoState == "STOPPED" && s.autoMode )
+                if ( s.autoState == "STOPPED" && s.autoMode && s.hoverState == "MOUSE_LEAVE" )
                     Control.startSlider( "next", ControlMode.AUTO );
             } else if ( message == CallbackRes.MOVE )
                   Control.moveSlide( args );

@@ -100,13 +100,13 @@ var SliderElement = {
 
     onMouseEnterEvent: function() {
         this.jQObject.on("mouseenter", function() {
-            SCONTROL.startSlider( "", SCONTROL.ControlMode.STOP );
+            SCONTROL.startSlider( "", SCONTROL.ControlMode.MOUSE_ENTER );
         });
     },
 
     onMouseLeaveEvent: function( control ) {
         this.jQObject.on("mouseleave", function() {
-            SCONTROL.startSlider( "next", SCONTROL.ControlMode.AUTO );
+            SCONTROL.startSlider( "next", SCONTROL.ControlMode.MOUSE_LEAVE );
         });
     }
 };
