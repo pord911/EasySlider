@@ -66,6 +66,7 @@ SliderMain.prototype.slideWithjQuery = function( moveParams ) {
                                                  this.elCssMoveConfig.elMovePrev,
         skipObject = SCONTROL.checkMoveState( "SLIDER_SKIP" ) ? this.skipAnim : this.moveAnim;
 
+    /* TODO: Add option for different types of sliding animations. */
     this.jQObject.animate(moveObject, skipObject, (function(params, context) {
         return function() {
             context.moveCallback( params );

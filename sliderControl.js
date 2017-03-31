@@ -140,7 +140,7 @@ var SCONTROL = (function() {
                         return function() {
                             context.moveSlide( "next" );
                         }
-                    })( Control ), s.interval);
+                    })( Control ), s.interval );
             } else if ( moveDesicion == ControlMode.MOVE_CLICK ) {
                 s.offset = 0;
                 Control.stopSlider();
