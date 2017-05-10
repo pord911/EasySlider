@@ -6,6 +6,11 @@
     overflow: hidden;
 }
 
+.wraper {
+    display: block;
+    margin: 10px auto;
+}
+
 .content1 {
     width: 150px;
     height: 50px;

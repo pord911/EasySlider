@@ -52,18 +52,23 @@ var SliderElement = {
         this.jQObject = jQObject;
         this.matrix = initMatrix( config.elListLength );
         this.setContainer( config.widthStr, config.heightStr, config.sliderElementContainer );
+        this.setWraper( config.widthStr, config.heightStr, config.wraperClass );
         this.setElementCss( config.option, config.width, config.height );
         this.createSlider();
     },
 
     setContainer: function( width, height, containerClass ) {
-        var c = containerClass,
-        dimension = {
-            width: width,
-            height: height
-        };
-        this.jQObject.wrap("<div class='" + c + "''></div>");
-        this.jQObject.parent().css( dimension );
+        this.jQObject.wrap("<div class='" + containerClass + "''></div>");
+        this.jQObject.parent().css( { width: width, height: height } );
+    },
+
+    setWraper: function( width, height, wraperClass ) {
+        /* Wraper needs to be created here since jQuery
+         * needs to have container as a parent in it's
+         * object. In order for the pager_box addition
+         * to take effect. */
+        this.jQObject.parent().wrap( "<div class='" + wraperClass + "'></div>" );
+        this.jQObject.parent().parent().css( { width: width, height: height } );
     },
 
     setElementCss: function( option, width, height ) {
@@ -99,14 +104,14 @@ var SliderElement = {
     },
 
     onMouseEnterEvent: function() {
-        this.jQObject.on("mouseenter", function() {
-            SCONTROL.startSlider( "", SCONTROL.ControlMode.MOUSE_ENTER );
+        this.jQObject.parent().on("mouseenter", function() {
+            SCONTROL.notify( "", SCONTROL.ControlMode.MOUSE_ENTER );
         });
     },
 
     onMouseLeaveEvent: function( control ) {
-        this.jQObject.on("mouseleave", function() {
-            SCONTROL.startSlider( "next", SCONTROL.ControlMode.MOUSE_LEAVE );
+        this.jQObject.parent().on("mouseleave", function() {
+            SCONTROL.notify( "next", SCONTROL.ControlMode.MOUSE_LEAVE );
         });
     }
 };
@@ -118,6 +123,7 @@ var PagerElement = {
         wraperHtml: '<div class="wraper"></div>'
     },
 
+    /* TODO: Add configuration parameter for multiple types of pager */
     init: function( jQObject, length ) {
         this.sliderContainer = jQObject.parent();
         this.length = length;
@@ -127,14 +133,10 @@ var PagerElement = {
 
     createPager: function() {
         var s = this.settings, pagerElement = '', i;
-            pagerb = $( '<div class="pager_box"></div>' );
+            pagerb = $( '<div class="pager_box"></div>' ),
+            wraper = this.sliderContainer.parent();
 
-        this.sliderContainer.wrap( s.wraperHtml );
-        /* Wraper needs to be created here since jQuery
-         * needs to have container as a parent in it's 
-         * object. In order for the pager_box addition
-         * to take effect. */
-        var wraper = this.sliderContainer.parent();
+
         /* Append needs a jQuery object here in order 
          * for pagers parentElement to get set to wraper
          * I do not know why is this needed. Otherwise,
@@ -158,6 +160,7 @@ var PagerElement = {
         });
     },
 
+    /* TODO: Add registerEvents function which will create all events */
     onPagerClick: function() {
         this.pager.find( 'a' ).on( "click", (function( context ) {
             return function( event ) {
@@ -174,7 +177,7 @@ var PagerElement = {
         else
             direction = "prev";
         this.render( clickIndex );
-        SCONTROL.startSlider( direction, SCONTROL.ControlMode.MOVE_WITH_INDEX, clickIndex );
+        SCONTROL.notify( direction, SCONTROL.ControlMode.MOVE_WITH_INDEX, clickIndex );
     }
 };
 
@@ -184,26 +187,26 @@ var ArrowElement = {
     },
 
     init: function( jQObject, config ) {
-        this.jQObject = jQObject.parent();
+        this.sliderContainer = jQObject.parent();
         this.settings.next = $( '<img src="' + config.rightArrowImage +  '" class="' + config.righwArrowClass + '"/>'  );
         this.settings.prev = $( '<img src="' + config.leftArrowImage +  '" class="' + config.leftArrowClass + '"/>'  );
         this.createArrow();
     },
 
     createArrow: function() {
-        this.jQObject.prepend( this.settings.next );
-        this.jQObject.prepend( this.settings.prev );
+        this.sliderContainer.append( this.settings.next );
+        this.sliderContainer.append( this.settings.prev );
     },
 
     onRightClick: function() {
         this.settings.next.on( "click", function() {
-            SCONTROL.startSlider( "next", SCONTROL.ControlMode.MOVE_CLICK );
+            SCONTROL.notify( "next", SCONTROL.ControlMode.MOVE );
         } );
     },
 
     onLeftClick: function() {
         this.settings.prev.on( "click", function() {
-            SCONTROL.startSlider( "prev", SCONTROL.ControlMode.MOVE_CLICK );
+            SCONTROL.notify( "prev", SCONTROL.ControlMode.MOVE );
         } );
     }
 };

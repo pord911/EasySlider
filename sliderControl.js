@@ -1,16 +1,10 @@
 var SCONTROL = (function() {
     var ControlMode = {
-        AUTO: 1,
+        CALLBACK_FINISHED: 1,
         MOVE: 2,
         MOVE_WITH_INDEX: 3,
-        STOP: 4,
-        MOUSE_ENTER: 5,
-        MOUSE_LEAVE: 6
-    },
-
-    CallbackRes = {
-        CALLBACK_FINISHED: 1,
-        MOVE: 2
+        MOUSE_ENTER: 4,
+        MOUSE_LEAVE: 5
     },
 
     IndexObject = {
@@ -60,18 +54,6 @@ var SCONTROL = (function() {
         }
     },
 
-    MoveState = {
-        state: "SLIDER_MOVE",
-
-        setMoveState: function( state ) {
-            MoveState.state = state;
-        },
-
-        checkMoveState: function( state ) {
-            return MoveState.state == state;
-        }
-    },
-
     Control = {
 
         settings: {
@@ -82,28 +64,129 @@ var SCONTROL = (function() {
             renderList: null,
             offset: 0,
             interval: 0,
-            intervalSet: 0,
-            state: "SLIDER_FREE",
-            autoState: "STOPPED",
-            hoverState: "MOUSE_LEAVE"
+            intervalSet: 0
         },
 
         init: function( renderList, autoMode, interval ) {
             Control.settings.renderList = renderList;
             Control.settings.autoMode = autoMode;
             Control.settings.interval = interval;
+            Control.setState( Control.states.SLIDER_FREE, "SLIDER_FREE" );
             if ( Control.settings.autoMode )
-                Control.startSlider( "next", ControlMode.AUTO, Control.settings.interval );
+                Control.startSlider( "next" );
+        },
+
+        states: {
+            SLIDER_BUSY: function( direction, moveDesicion ) {
+                switch ( moveDesicion ) {
+                    case ControlMode.CALLBACK_FINISHED:
+                        Control.setState( Control.states.SLIDER_FREE, "SLIDER_FREE" );
+                        Control.startSlider( "next" );
+                        break;
+                    case ControlMode.MOVE:
+                    case ControlMode.MOVE_WITH_INDEX:
+                        break;
+                    default:
+                        console.log("ERROR: Received invalid state transition " + moveDesicion +
+                                    " in SLIDER_BUSY"  );
+                }
+            },
+
+            SLIDER_SKIP: function( direction, moveDesicion ) {
+                var s = Control.settings;
+
+                switch ( moveDesicion ) {
+                    case ControlMode.SKIP:
+                        /* Make sure to update offset before
+                           any animation is performed */
+                        s.offset--;
+                        if ( s.offset > 0 ) {
+                            Control.moveSlide( direction );
+                        } else {
+                            Control.setState( Control.states.SLIDER_BUSY, "SLIDER_BUSY" );
+                            Control.moveSlide( direction );
+                        }
+                        break;
+                    case  ControlMode.CALLBACK_FINISHED:
+                        Control.setState( Control.states.SLIDER_FREE, "SLIDER_FREE" );
+                        Control.startSlider( "next" );
+                        break;
+                    default:
+                        console.log("ERROR: Received invalid state transition " + moveDesicion +
+                                    " in SLIDER_SKIP"  );
+                }
+            },
+
+            /* This state acts like a freeze of all slider auto functionality,
+               that is why we have 'moving' variable as part of memoization
+               in order to preserve functionality that should be done while mouseenter
+               event is on. If any new preserving states need to be handled here add it as
+               memoized elements. */
+            SLIDER_HOVER: function( direction, moveDesicion ) {
+                var s = Control.settings;
+
+                switch ( moveDesicion ) {
+                    case ControlMode.MOUSE_LEAVE:
+                        Control.setState( Control.states.SLIDER_FREE, "SLIDER_FREE" );
+                        Control.startSlider();
+                        break;
+                    case ControlMode.MOVE:
+                        if ( Control.states.SLIDER_HOVER.moving == undefined )
+                            Control.states.SLIDER_HOVER.moving = true;
+                        else if ( Control.states.SLIDER_HOVER.moving )
+                            return;
+                        else
+                            Control.states.SLIDER_HOVER.moving = true;
+                        Control.moveSlide( direction );
+                        break;
+                    case ControlMode.CALLBACK_FINISHED:
+                        Control.states.SLIDER_HOVER.moving = false;
+                        break;
+                    default:
+                        console.log("ERROR: Received invalid state transition " + moveDesicion +
+                                    " in SLIDER_HOVER"  );
+                }
+            },
+
+            SLIDER_FREE: function( direction, moveDesicion ) {
+                var s = Control.settings;
+                switch ( moveDesicion ) {
+                    case ControlMode.MOVE:
+                        Control.setState( Control.states.SLIDER_BUSY, "SLIDER_BUSY" );
+                        Control.stopSlider();
+                        Control.moveSlide( direction );
+                        break;
+                    case ControlMode.MOVE_WITH_INDEX:
+                        Control.setState( Control.states.SLIDER_SKIP, "SLIDER_SKIP" );
+                        Control.stopSlider();
+                        /* We call state here since we need the offset calculation to start
+                           immediately. */
+                        Control.state( direction, ControlMode.SKIP );
+                        break;
+                    case ControlMode.MOUSE_ENTER:
+                        Control.setState( Control.states.SLIDER_HOVER, "SLIDER_HOVER" );
+                        Control.stopSlider( true );
+                        break;
+                    case ControlMode.CALLBACK_FINISHED:
+                        break;
+                    default:
+                        console.log("ERROR: Received invalid state transition " + moveDesicion +
+                                    " in SLIDER_FREE"  );
+                }
+            }
+        },
+
+        notify: function( direction, moveDesicion, index ) {
+            var s = Control.settings;
+            if ( s.offset <= 0 )
+                s.offset = index != undefined ? IndexObject.getOffset( index ) : 0;
+
+            Control.state( direction, moveDesicion );
         },
 
         moveSlide: function( direction ) {
             var s = Control.settings;
-            if ( s.offset > 1 ) {
-                MoveState.setMoveState( "SLIDER_SKIP" );
-                s.offset--;
-            } else {
-                MoveState.setMoveState( "SLIDER_MOVE" );
-            }
+
             s.moveParams.next = direction;
             IndexObject.updateIndex( s.moveParams.next );
             s.state = "SLIDER_BUSY";
@@ -117,59 +200,32 @@ var SCONTROL = (function() {
             })( s.renderList ), 10);
         },
 
-        /* TODO: Investigate the addition of adding a state control object.
-           Right now there are too many states.
-         */
-        startSlider: function( direction, moveDesicion, index ) {
+        startSlider: function( direction ) {
             var s = Control.settings;
-            if ( s.state == "SLIDER_BUSY")
-                return;
-
-            if ( moveDesicion == ControlMode.MOVE_WITH_INDEX ) {
-                if ( index != undefined ) {
-                    s.offset = IndexObject.getOffset( index );
-                }
-                Control.stopSlider();
-                Control.moveSlide( direction );
-            } else if ( moveDesicion == ControlMode.AUTO ) {
-                if ( s.autoState == "STARTED" )
-                    return;
-                s.autoState = "STARTED";
+            if ( s.autoMode ) {
                 s.intervalSet =
                     setInterval((function( context ) {
                         return function() {
-                            context.moveSlide( "next" );
+                            context.moveSlide( direction );
                         }
                     })( Control ), s.interval );
-            } else if ( moveDesicion == ControlMode.MOVE_CLICK ) {
-                s.offset = 0;
-                Control.stopSlider();
-                Control.moveSlide( direction );
-            } else if ( moveDesicion == ControlMode.MOUSE_ENTER ) {
-                s.hoverState = "MOUSE_ENTER";
-                Control.stopSlider();
-            } else if ( moveDesicion == ControlMode.MOUSE_LEAVE ) {
-                s.hoverState = "MOUSE_LEAVE";
-                Control.startSlider( "next", ControlMode.AUTO );
             }
         },
 
-        notify: function( message, args ) {
+        stopSlider: function( ) {
             var s = Control.settings;
-            if ( message == CallbackRes.CALLBACK_FINISHED ) {
-                s.state = "SLIDER_FREE";
-                if ( s.autoState == "STOPPED" && s.autoMode && s.hoverState == "MOUSE_LEAVE" )
-                    Control.startSlider( "next", ControlMode.AUTO );
-            } else if ( message == CallbackRes.MOVE )
-                  Control.moveSlide( args );
-        },
-
-        stopSlider: function() {
-            var s = Control.settings;
-            if ( s.autoMode  && s.autoState == "STARTED") {
+            if ( s.autoMode ) {
                 clearInterval( s.intervalSet );
-                s.autoState = "STOPPED";
             }
+        },
+
+        setState: function( state, stateStr ) {
+            Control.state = state;
+            Control.settings.stateStr = stateStr;
+        },
+
+        checkState: function( state ) {
+            return Control.settings.stateStr == state;
         },
 
         getMoveParams: function() {
@@ -188,11 +244,9 @@ var SCONTROL = (function() {
         init: init,
         getIndex: IndexObject.getIndex,
         getOffset: IndexObject.getOffset,
-        checkMoveState: MoveState.checkMoveState,
+        checkState: Control.checkState,
         notify: Control.notify,
-        startSlider: Control.startSlider,
         getMoveParams: Control.getMoveParams,
-        ControlMode: ControlMode,
-        CallbackRes: CallbackRes
+        ControlMode: ControlMode
     };
 })();

@@ -5,6 +5,7 @@ var MOVECONFIG = (function() {
      */
 	var getVertical = function( config ) {
 	    return {
+            /* TODO: A little bit descriptive naming would be rather nice */
             elCssValue: config.height,
             elCssProperty: 'top',
             elCssMoveProp: config.useCssThree ? config.cssPrefix + '-transform':'top',
@@ -60,11 +61,11 @@ function SliderMain( jQObject, config ) {
 			return context.slideWithjQuery;
 	})( config.useCssThree, this );
 }
-
+/* TODO: Add functions for doing actions before animation, i.e. matrix/vector adjustment */
 SliderMain.prototype.slideWithjQuery = function( moveParams ) {
     var moveObject = moveParams.next == "next" ? this.elCssMoveConfig.elMoveNext :
                                                  this.elCssMoveConfig.elMovePrev,
-        skipObject = SCONTROL.checkMoveState( "SLIDER_SKIP" ) ? this.skipAnim : this.moveAnim;
+        skipObject = SCONTROL.checkState( "SLIDER_SKIP" ) ? this.skipAnim : this.moveAnim;
 
     /* TODO: Add option for different types of sliding animations. */
     this.jQObject.animate(moveObject, skipObject, (function(params, context) {
@@ -81,13 +82,13 @@ SliderMain.prototype.moveCallback = function( event ) {
 	this.setDefaultCss();
 	this.updateElementOrder();
 
-	if ( SCONTROL.checkMoveState( "SLIDER_SKIP" ) )
-		SCONTROL.notify( SCONTROL.CallbackRes.MOVE , params.next );
+	if ( SCONTROL.checkState( "SLIDER_SKIP" ) )
+		SCONTROL.notify( params.next, SCONTROL.ControlMode.SKIP );
 	else {
 		this.callbackList.forEach( function( callback, index ) {
 			callback();
 		});
-		SCONTROL.notify( SCONTROL.CallbackRes.CALLBACK_FINISHED );
+		SCONTROL.notify( "", SCONTROL.ControlMode.CALLBACK_FINISHED );
 	}
 }
 

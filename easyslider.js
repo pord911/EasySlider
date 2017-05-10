@@ -10,7 +10,8 @@
 		lazyAnimTime: 200,
 
 		sliderElementContainer: 'container',
-
+		wraperClass: 'wraper',
+        /* TODO: add suffix 'time' */
         skipAnim: 50,
         moveAnim: 500,
 
